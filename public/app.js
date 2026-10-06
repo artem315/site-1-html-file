@@ -1,510 +1,8 @@
-<!doctype html>
-<html lang="ru">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Craftory</title>
-<meta name="description" content="Craftory — каталог модов, сборок, ресурспаков, шейдеров, плагинов и датапаков для Minecraft.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Unbounded:wght@500;700&display=swap">
-<style>
-/* Layout: sticky header, 1280px content column; browse = filter rail + results; project = header, tabs, side rail. Dark-first. */
-:root {
-  --bg: #15171c;
-  --bg-sunken: #101216;
-  --raised: #1d2027;
-  --surface: #252933;
-  --border: #303542;
-  --border-strong: #414858;
-  --fg: #ebe8e4;
-  --fg-muted: #a6abb6;
-  --fg-faint: #737985;
-  --accent: #e28c52;          /* copper */
-  --accent-hover: #ee9d66;
-  --accent-fg: #1d1006;
-  --accent-soft: rgba(226, 140, 82, .14);
-  --oxide: #56bfa9;           /* oxidized copper, secondary */
-  --oxide-soft: rgba(86, 191, 169, .14);
-  --ok: #5cc07f;
-  --warn: #e0b04a;
-  --danger: #ec5f57;
-  --danger-soft: rgba(236, 95, 87, .14);
-  --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-  --overlay: rgba(6, 7, 10, .72);
-  --font-display: "Unbounded", "Golos Text", system-ui, sans-serif;
-  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --r-sm: 6px;
-  --r-md: 10px;
-  --r-lg: 16px;
-  --gutter: clamp(16px, 3vw, 28px);
-  color-scheme: dark;
-}
-@media (prefers-color-scheme: light) {
-  :root:not([data-theme="dark"]) {
-    --bg: #eef0f3; --bg-sunken: #e3e6eb; --raised: #ffffff; --surface: #f6f7f9;
-    --border: #d8dce3; --border-strong: #bfc5cf;
-    --fg: #1a1d23; --fg-muted: #535a67; --fg-faint: #858b97;
-    --accent: #b5602a; --accent-hover: #9d5021; --accent-fg: #ffffff; --accent-soft: rgba(181, 96, 42, .12);
-    --oxide: #23806d; --oxide-soft: rgba(35, 128, 109, .12);
-    --ok: #2f8a50; --warn: #a77712; --danger: #c93a32; --danger-soft: rgba(201, 58, 50, .1);
-    --shadow: 0 10px 30px rgba(30, 40, 60, .14); --overlay: rgba(20, 24, 32, .55);
-    color-scheme: light;
-  }
-}
-:root[data-theme="light"] {
-  --bg: #eef0f3; --bg-sunken: #e3e6eb; --raised: #ffffff; --surface: #f6f7f9;
-  --border: #d8dce3; --border-strong: #bfc5cf;
-  --fg: #1a1d23; --fg-muted: #535a67; --fg-faint: #858b97;
-  --accent: #b5602a; --accent-hover: #9d5021; --accent-fg: #ffffff; --accent-soft: rgba(181, 96, 42, .12);
-  --oxide: #23806d; --oxide-soft: rgba(35, 128, 109, .12);
-  --ok: #2f8a50; --warn: #a77712; --danger: #c93a32; --danger-soft: rgba(201, 58, 50, .1);
-  --shadow: 0 10px 30px rgba(30, 40, 60, .14); --overlay: rgba(20, 24, 32, .55);
-  color-scheme: light;
-}
-
-* { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; }
-body {
-  margin: 0; background: var(--bg); color: var(--fg);
-  font: 400 15px/1.55 var(--font-body);
-  min-height: 100vh; display: flex; flex-direction: column;
-}
-img { max-width: 100%; display: block; }
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-[hidden] { display: none !important; }
-h1, h2, h3, h4 { text-wrap: balance; margin: 0; line-height: 1.2; }
-h1 { font: 700 clamp(1.5rem, 1.1rem + 1.6vw, 2.1rem)/1.15 var(--font-display); letter-spacing: -.01em; }
-h2 { font: 700 1.3rem/1.25 var(--font-display); }
-h3 { font-size: 1.05rem; font-weight: 600; }
-p { margin: 0; }
-.mono { font-family: var(--font-mono); font-size: .88em; }
-.muted { color: var(--fg-muted); }
-.faint { color: var(--fg-faint); }
-.num { font-variant-numeric: tabular-nums; }
-.eyebrow { font-size: .72rem; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; color: var(--fg-faint); }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.container { width: 100%; max-width: 1280px; margin: 0 auto; padding-inline: var(--gutter); }
-.stack { display: flex; flex-direction: column; gap: 12px; }
-.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.spacer { flex: 1; }
-
-/* ---------- Buttons & inputs ---------- */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  height: 38px; padding: 0 16px; border-radius: var(--r-md);
-  border: 1px solid var(--border); background: var(--surface); color: var(--fg);
-  font-weight: 600; font-size: .92rem; cursor: pointer; white-space: nowrap;
-  transition: background .15s, border-color .15s, transform .05s;
-}
-.btn:hover { border-color: var(--border-strong); text-decoration: none; }
-.btn:active { transform: translateY(1px); }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-.btn svg { width: 18px; height: 18px; flex: none; }
-.btn-primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
-.btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-.btn-ghost { background: transparent; border-color: transparent; }
-.btn-ghost:hover { background: var(--surface); border-color: var(--border); }
-.btn-danger { background: var(--danger-soft); border-color: transparent; color: var(--danger); }
-.btn-danger:hover { border-color: var(--danger); }
-.btn-active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
-.btn-sm { height: 30px; padding: 0 11px; font-size: .84rem; border-radius: var(--r-sm); }
-.btn-lg { height: 46px; padding: 0 22px; font-size: 1rem; }
-.btn-icon { width: 38px; padding: 0; }
-.btn-icon.btn-sm { width: 30px; }
-.input, .select, .textarea {
-  width: 100%; min-height: 38px; padding: 8px 12px; border-radius: var(--r-md);
-  border: 1px solid var(--border); background: var(--bg-sunken); color: var(--fg);
-  font: inherit; font-size: .95rem;
-}
-.textarea { min-height: 140px; resize: vertical; line-height: 1.5; }
-.textarea.code { font-family: var(--font-mono); font-size: .86rem; }
-.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.field > label, .field-label { font-weight: 600; font-size: .9rem; }
-.field .hint { font-size: .82rem; color: var(--fg-faint); }
-.field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-.check { display: flex; align-items: center; gap: 9px; cursor: pointer; padding: 4px 0; font-size: .92rem; color: var(--fg-muted); user-select: none; }
-.check:hover { color: var(--fg); }
-.check input { accent-color: var(--accent); width: 16px; height: 16px; margin: 0; flex: none; }
-.check-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 2px 14px; }
-.search-box { position: relative; }
-.search-box svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; width: 18px; height: 18px; color: var(--fg-faint); pointer-events: none; }
-.search-box .input { padding-left: 38px; }
-.error-text { color: var(--danger); font-size: .88rem; }
-
-/* ---------- Chips & badges ---------- */
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip {
-  display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px;
-  background: var(--surface); border: 1px solid var(--border); color: var(--fg-muted);
-  font-size: .8rem; font-weight: 500; white-space: nowrap;
-}
-a.chip:hover { color: var(--fg); text-decoration: none; border-color: var(--border-strong); }
-.chip .dot { width: 8px; height: 8px; border-radius: 2px; flex: none; }
-.badge { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: var(--r-sm); font-size: .74rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
-.badge-release { background: var(--oxide-soft); color: var(--oxide); }
-.badge-beta { background: rgba(224, 176, 74, .16); color: var(--warn); }
-.badge-alpha { background: var(--danger-soft); color: var(--danger); }
-.badge-draft { background: var(--surface); color: var(--fg-muted); border: 1px dashed var(--border-strong); }
-.badge-unlisted { background: var(--accent-soft); color: var(--accent); }
-.badge-withheld { background: var(--danger-soft); color: var(--danger); }
-.badge-published { background: var(--oxide-soft); color: var(--oxide); }
-.channel-mark { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: var(--r-sm); font: 700 .78rem var(--font-mono); }
-
-/* ---------- Header ---------- */
-.site-header {
-  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50;
-  background: color-mix(in srgb, var(--bg) 88%, transparent);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border);
-}
-.header-inner { display: flex; align-items: center; gap: 18px; height: 64px; }
-.brand { display: flex; align-items: center; gap: 10px; color: var(--fg); font: 700 1.12rem var(--font-display); letter-spacing: -.01em; flex: none; }
-.brand:hover { text-decoration: none; }
-.brand svg { width: 30px; height: 30px; }
-.main-nav { display: flex; gap: 2px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-.main-nav a { padding: 7px 11px; border-radius: var(--r-sm); color: var(--fg-muted); font-weight: 600; font-size: .92rem; white-space: nowrap; }
-.main-nav a:hover { color: var(--fg); background: var(--surface); text-decoration: none; }
-.main-nav a.active { color: var(--accent); background: var(--accent-soft); }
-.header-actions { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: none; }
-.bell { position: relative; }
-.bell .count { position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--danger); color: #fff; font-size: .68rem; font-weight: 700; display: grid; place-items: center; }
-.avatar { border-radius: 50%; background: var(--surface); object-fit: cover; flex: none; image-rendering: pixelated; }
-.avatar-btn { padding: 2px; border-radius: 50%; border: 1px solid var(--border); background: none; cursor: pointer; display: flex; }
-.burger { display: none; }
-.mobile-nav { display: none; }
-@media (max-width: 1060px) {
-  .main-nav { display: none; }
-  .burger { display: inline-flex; }
-  .mobile-nav.open { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 10px var(--gutter) 14px; border-top: 1px solid var(--border); }
-  .mobile-nav a { padding: 10px 12px; border-radius: var(--r-sm); color: var(--fg); font-weight: 600; background: var(--surface); }
-}
-@media (max-width: 560px) {
-  .hide-sm { display: none !important; }
-  .brand span { display: none; }
-}
-
-/* ---------- Dropdown ---------- */
-.dropdown { position: relative; }
-.dropdown-menu {
-  position: absolute; right: 0; top: calc(100% + 8px); min-width: 230px; z-index: 60;
-  background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-md);
-  box-shadow: var(--shadow); padding: 6px; display: none;
-}
-.dropdown.open .dropdown-menu { display: block; }
-.dropdown-menu a, .dropdown-menu button {
-  display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: var(--r-sm);
-  color: var(--fg); background: none; border: 0; text-align: left; font-size: .92rem; cursor: pointer;
-}
-.dropdown-menu a:hover, .dropdown-menu button:hover { background: var(--surface); text-decoration: none; }
-.dropdown-menu svg { width: 17px; height: 17px; color: var(--fg-muted); }
-.dropdown-menu hr { border: 0; border-top: 1px solid var(--border); margin: 6px 0; }
-.dropdown-head { padding: 8px 10px 10px; display: flex; gap: 10px; align-items: center; }
-
-/* ---------- Main ---------- */
-main { flex: 1; padding-block: 28px 56px; }
-.panel { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 20px; min-width: 0; }
-.panel-tight { padding: 14px; }
-.panel h3 + * { margin-top: 10px; }
-.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
-.page-head p { margin-top: 6px; }
-.storage-banner { background: var(--danger-soft); color: var(--fg); border-bottom: 1px solid var(--border); font-size: .88rem; padding-block: 8px; }
-
-/* ---------- Hero ---------- */
-.hero { position: relative; overflow: hidden; border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--bg-sunken); margin-bottom: 40px; }
-.hero-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated; opacity: .55; }
-.hero-shade { position: absolute; inset: 0; background: linear-gradient(90deg, var(--bg-sunken) 30%, color-mix(in srgb, var(--bg-sunken) 40%, transparent) 75%, transparent); }
-.hero-body { position: relative; padding: clamp(28px, 5vw, 56px); max-width: 720px; display: flex; flex-direction: column; gap: 18px; }
-.hero h1 { font-size: clamp(1.8rem, 1.2rem + 2.8vw, 3rem); }
-.hero h1 em { font-style: normal; color: var(--accent); }
-.hero p { color: var(--fg-muted); font-size: 1.06rem; max-width: 56ch; }
-.hero .search-box .input { height: 50px; font-size: 1.02rem; background: var(--raised); }
-.hero-stats { display: flex; gap: 28px; flex-wrap: wrap; }
-.hero-stats b { display: block; font: 700 1.35rem var(--font-display); }
-.hero-stats span { font-size: .84rem; color: var(--fg-muted); }
-.type-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-bottom: 40px; }
-.type-tile { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: var(--r-md); background: var(--raised); border: 1px solid var(--border); color: var(--fg); }
-.type-tile:hover { border-color: var(--accent); text-decoration: none; }
-.type-tile .ti { width: 40px; height: 40px; border-radius: var(--r-sm); display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); flex: none; }
-.type-tile .ti svg { width: 22px; height: 22px; }
-.type-tile b { display: block; font-size: .96rem; }
-.type-tile small { color: var(--fg-faint); font-size: .8rem; }
-.section { margin-bottom: 44px; }
-.section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-.creator-cta { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items: center; }
-.steps { display: grid; gap: 10px; counter-reset: s; margin: 0; padding: 0; list-style: none; }
-.steps li { display: flex; gap: 12px; align-items: flex-start; counter-increment: s; color: var(--fg-muted); }
-.steps li::before { content: counter(s); flex: none; width: 26px; height: 26px; border-radius: var(--r-sm); background: var(--accent-soft); color: var(--accent); font: 700 .8rem var(--font-mono); display: grid; place-items: center; }
-.steps b { color: var(--fg); }
-@media (max-width: 760px) { .creator-cta { grid-template-columns: 1fr; } }
-
-/* ---------- Project cards ---------- */
-.p-icon { border-radius: var(--r-md); background: var(--surface); object-fit: cover; image-rendering: pixelated; flex: none; border: 1px solid var(--border); }
-.p-list { display: flex; flex-direction: column; gap: 10px; }
-.p-row {
-  display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; gap: 6px 16px; padding: 16px;
-  background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg);
-}
-.p-row:hover { border-color: var(--border-strong); }
-.p-row .p-icon { width: 84px; height: 84px; grid-row: span 2; }
-.p-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
-.p-title a.name { color: var(--fg); font-weight: 700; font-size: 1.12rem; }
-.p-title .by { color: var(--fg-faint); font-size: .88rem; }
-.p-title .by a { color: var(--fg-muted); }
-.p-summary { color: var(--fg-muted); margin-top: 4px; overflow-wrap: anywhere; }
-.p-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; color: var(--fg-muted); font-size: .9rem; text-align: right; }
-.p-stats b { color: var(--fg); font-weight: 700; }
-.p-stats .st { display: flex; align-items: center; gap: 6px; }
-.p-stats svg { width: 16px; height: 16px; color: var(--fg-faint); }
-.p-meta svg { width: 14px; height: 14px; vertical-align: -2px; }
-.p-meta { grid-column: 2 / 4; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-@media (max-width: 640px) {
-  .p-row { grid-template-columns: 56px minmax(0, 1fr); }
-  .p-row .p-icon { width: 56px; height: 56px; grid-row: auto; }
-  .p-stats { grid-column: 1 / -1; flex-direction: row; justify-content: flex-start; gap: 16px; }
-  .p-meta { grid-column: 1 / -1; }
-}
-.p-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
-.p-card { display: flex; flex-direction: column; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; min-width: 0; }
-.p-card:hover { border-color: var(--border-strong); }
-.p-card .cover { aspect-ratio: 16 / 7; width: 100%; max-width: 100%; object-fit: cover; image-rendering: pixelated; background: var(--surface); }
-.p-card .body { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-.p-card .head { display: flex; gap: 12px; align-items: flex-end; margin-top: -26px; }
-.p-card .head .p-icon { width: 64px; height: 64px; border: 3px solid var(--raised); }
-.p-card .p-summary { font-size: .92rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.p-card .foot { display: flex; gap: 14px; color: var(--fg-muted); font-size: .86rem; margin-top: auto; padding-top: 6px; }
-.p-card .foot span { display: flex; align-items: center; gap: 5px; }
-.p-card .foot svg { width: 15px; height: 15px; }
-.mini-list { display: flex; flex-direction: column; gap: 4px; }
-.mini { display: flex; gap: 10px; align-items: center; padding: 6px; border-radius: var(--r-md); color: var(--fg); }
-.mini:hover { background: var(--surface); text-decoration: none; }
-.mini .p-icon { width: 40px; height: 40px; }
-.mini b { display: block; font-size: .92rem; line-height: 1.3; }
-.mini small { color: var(--fg-faint); font-size: .8rem; }
-
-/* ---------- Browse ---------- */
-.browse { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 22px; align-items: start; }
-.filters { position: sticky; top: calc(76px + env(safe-area-inset-top, 0px)); max-height: calc(100vh - 96px); overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-.filter-group { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 14px 16px; }
-.filter-group h4 { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
-.filter-group .linkish { background: none; border: 0; color: var(--accent); font-size: .82rem; cursor: pointer; padding: 4px 0 0; }
-.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-.toolbar .search-box { flex: 1 1 260px; }
-.toolbar .select { width: auto; }
-.seg { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-md); overflow: hidden; }
-.seg button { background: var(--surface); border: 0; height: 36px; width: 40px; display: grid; place-items: center; cursor: pointer; color: var(--fg-muted); }
-.seg button.on { background: var(--accent-soft); color: var(--accent); }
-.seg svg { width: 18px; height: 18px; }
-.active-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.active-filters button { cursor: pointer; }
-.result-count { color: var(--fg-muted); font-size: .9rem; margin-bottom: 10px; }
-.filters-toggle { display: none; }
-@media (max-width: 900px) {
-  .browse { grid-template-columns: 1fr; }
-  .filters { position: static; max-height: none; display: none; }
-  .filters.open { display: flex; }
-  .filters-toggle { display: inline-flex; }
-}
-.pagination { display: flex; gap: 6px; justify-content: center; margin-top: 22px; flex-wrap: wrap; }
-.pagination button { min-width: 38px; }
-.empty { text-align: center; padding: 48px 20px; color: var(--fg-muted); display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.empty svg { width: 46px; height: 46px; color: var(--fg-faint); }
-.empty b { color: var(--fg); font-size: 1.05rem; }
-
-/* ---------- Project page ---------- */
-.proj-head { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: 18px; align-items: start; margin-bottom: 20px; }
-.proj-head .p-icon { width: 96px; height: 96px; border-radius: var(--r-lg); }
-.proj-head h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.proj-head .summary { color: var(--fg-muted); margin-top: 8px; font-size: 1.02rem; max-width: 70ch; }
-.proj-head .stats { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 12px; color: var(--fg-muted); font-size: .92rem; }
-.proj-head .stats span { display: flex; align-items: center; gap: 6px; }
-.proj-head .stats svg { width: 16px; height: 16px; }
-.proj-head .stats b { color: var(--fg); }
-.proj-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-@media (max-width: 760px) {
-  .proj-head { grid-template-columns: 64px minmax(0, 1fr); }
-  .proj-head .p-icon { width: 64px; height: 64px; }
-  .proj-actions { grid-column: 1 / -1; justify-content: flex-start; }
-}
-.notice { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r-md); background: var(--accent-soft); border: 1px solid var(--border); margin-bottom: 16px; font-size: .92rem; }
-.notice.danger { background: var(--danger-soft); }
-.notice svg { width: 20px; height: 20px; flex: none; color: var(--accent); }
-.notice.danger svg { color: var(--danger); }
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 20px; overflow-x: auto; scrollbar-width: thin; }
-.tabs a { padding: 10px 14px; color: var(--fg-muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; display: flex; gap: 6px; align-items: center; }
-.tabs a:hover { color: var(--fg); text-decoration: none; }
-.tabs a.active { color: var(--accent); border-bottom-color: var(--accent); }
-.tabs .n { font-size: .78rem; color: var(--fg-faint); font-family: var(--font-mono); }
-.proj-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
-@media (max-width: 960px) { .proj-layout { grid-template-columns: 1fr; } }
-.side { display: flex; flex-direction: column; gap: 12px; }
-.side .panel { padding: 16px; }
-.side h3 { font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); margin-bottom: 10px; }
-.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: .9rem; }
-.kv dt { color: var(--fg-faint); }
-.kv dd { margin: 0; text-align: right; min-width: 0; overflow-wrap: anywhere; }
-.link-list { display: flex; flex-direction: column; gap: 4px; }
-.link-list a { display: flex; align-items: center; gap: 8px; font-size: .92rem; padding: 4px 0; overflow-wrap: anywhere; }
-.link-list svg { width: 16px; height: 16px; flex: none; }
-.member { display: flex; gap: 10px; align-items: center; padding: 4px 0; color: var(--fg); }
-.member:hover { text-decoration: none; }
-.member b { display: block; font-size: .92rem; }
-.member small { color: var(--fg-faint); font-size: .8rem; }
-
-/* ---------- Markdown ---------- */
-.md { overflow-wrap: anywhere; max-width: 78ch; }
-.md > * + * { margin-top: .85em; }
-.md h1, .md h2, .md h3 { margin-top: 1.4em; font-family: var(--font-body); font-weight: 700; }
-.md h1 { font-size: 1.5rem; }
-.md h2 { font-size: 1.25rem; padding-bottom: .3em; border-bottom: 1px solid var(--border); }
-.md h3 { font-size: 1.06rem; }
-.md > :first-child { margin-top: 0; }
-.md ul, .md ol { padding-left: 1.4em; }
-.md li + li { margin-top: .3em; }
-.md code { font-family: var(--font-mono); font-size: .86em; background: var(--surface); border: 1px solid var(--border); padding: .1em .35em; border-radius: 4px; }
-.md pre { background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 14px; overflow-x: auto; }
-.md pre code { background: none; border: 0; padding: 0; }
-.md blockquote { margin-left: 0; padding: 8px 14px; border-left: 3px solid var(--oxide); background: var(--oxide-soft); border-radius: 0 var(--r-sm) var(--r-sm) 0; color: var(--fg-muted); }
-.md hr { border: 0; border-top: 1px solid var(--border); }
-.md img { border-radius: var(--r-md); }
-.md table { border-collapse: collapse; display: block; overflow-x: auto; }
-.md th, .md td { border: 1px solid var(--border); padding: 6px 10px; }
-
-/* ---------- Tables ---------- */
-.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--raised); }
-.table { width: 100%; border-collapse: collapse; font-size: .92rem; }
-.table th { text-align: left; font-size: .76rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--fg-faint); padding: 12px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; }
-.table td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.table tr:last-child td { border-bottom: 0; }
-.table tbody tr:hover { background: var(--surface); }
-.table .t-name { font-weight: 700; color: var(--fg); }
-.table .t-sub { color: var(--fg-faint); font-size: .82rem; }
-
-/* ---------- Gallery ---------- */
-.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-.g-item { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
-.g-item button.thumb { padding: 0; border: 0; background: var(--surface); cursor: zoom-in; display: block; width: 100%; }
-.g-item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; image-rendering: pixelated; }
-.g-item .cap { padding: 10px 14px 14px; }
-.g-item .cap b { display: block; }
-.g-item .cap p { color: var(--fg-muted); font-size: .88rem; margin-top: 2px; }
-.lightbox { position: fixed; inset: 0; z-index: 120; background: var(--overlay); display: grid; place-items: center; padding: 24px; }
-.lightbox figure { margin: 0; max-width: min(1100px, 100%); display: flex; flex-direction: column; gap: 10px; }
-.lightbox img { max-height: 78vh; width: auto; border-radius: var(--r-md); image-rendering: pixelated; margin: 0 auto; }
-.lightbox figcaption { color: #f1f1f1; text-align: center; }
-.lightbox .lb-nav { position: absolute; top: 50%; translate: 0 -50%; }
-.lightbox .lb-prev { left: 16px; }
-.lightbox .lb-next { right: 16px; }
-.lightbox .lb-close { position: absolute; top: 16px; right: 16px; }
-
-/* ---------- Modal ---------- */
-.modal-backdrop { position: fixed; inset: 0; z-index: 100; background: var(--overlay); display: flex; align-items: flex-start; justify-content: center; padding: max(6vh, 16px) 16px 16px; overflow-y: auto; }
-.modal { width: 100%; max-width: 560px; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow); }
-.modal-wide { max-width: 760px; }
-.modal-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-.modal-head h2 { font-size: 1.1rem; }
-.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.modal-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; }
-.pick-list { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
-.pick { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); cursor: pointer; }
-.pick:hover { border-color: var(--border-strong); }
-.pick input { accent-color: var(--accent); }
-.dl-result { border: 1px solid var(--border); border-radius: var(--r-md); padding: 14px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; background: var(--surface); }
-.dl-result .info { flex: 1; min-width: 0; }
-.dl-result .info b { display: block; overflow-wrap: anywhere; }
-
-/* ---------- Toast ---------- */
-.toasts { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 200; display: flex; flex-direction: column; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
-.toast { background: var(--raised); border: 1px solid var(--border); border-left: 4px solid var(--oxide); border-radius: var(--r-md); padding: 12px 14px; box-shadow: var(--shadow); font-size: .92rem; animation: toast-in .2s ease-out; }
-.toast.error { border-left-color: var(--danger); }
-@keyframes toast-in { from { transform: translateY(8px); opacity: .3; } }
-
-/* ---------- Dashboard / settings ---------- */
-.side-layout { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
-.side-nav { position: sticky; top: calc(84px + env(safe-area-inset-top, 0px)); display: flex; flex-direction: column; gap: 2px; background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 8px; }
-.side-nav a { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--r-sm); color: var(--fg-muted); font-weight: 600; font-size: .93rem; }
-.side-nav a:hover { background: var(--surface); color: var(--fg); text-decoration: none; }
-.side-nav a.active { background: var(--accent-soft); color: var(--accent); }
-.side-nav svg { width: 18px; height: 18px; flex: none; }
-.side-nav .n { margin-left: auto; font-size: .76rem; background: var(--danger); color: #fff; border-radius: 9px; padding: 0 6px; }
-.side-nav .back { color: var(--fg-faint); font-size: .86rem; }
-@media (max-width: 860px) {
-  .side-layout { grid-template-columns: 1fr; }
-  .side-nav { position: static; flex-direction: row; overflow-x: auto; }
-  .side-nav a { white-space: nowrap; }
-}
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 18px; }
-.stat { background: var(--raised); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 16px; }
-.stat .v { font: 700 1.6rem var(--font-display); margin-top: 4px; font-variant-numeric: tabular-nums; }
-.stat .d { font-size: .82rem; color: var(--fg-faint); margin-top: 2px; }
-.chart { width: 100%; height: auto; display: block; }
-.chart text { fill: var(--fg-faint); font: 11px var(--font-mono); }
-.chart .grid { stroke: var(--border); stroke-width: 1; }
-.chart .area { fill: var(--accent-soft); stroke: none; }
-.chart .line { fill: none; stroke: var(--accent); stroke-width: 2; }
-.chart .dotp { fill: var(--accent); stroke: var(--raised); stroke-width: 2; }
-.notif { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); align-items: flex-start; }
-.notif:last-child { border-bottom: 0; }
-.notif.unread { background: var(--accent-soft); }
-.notif .ic { width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--surface); display: grid; place-items: center; flex: none; color: var(--accent); }
-.notif .ic svg { width: 18px; height: 18px; }
-.notif .tx { flex: 1; min-width: 0; }
-.notif .tx small { color: var(--fg-faint); display: block; margin-top: 2px; }
-.icon-edit { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.icon-edit .p-icon, .icon-edit .avatar { width: 96px; height: 96px; }
-.danger-zone { border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
-.form-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
-.tab-switch { display: inline-flex; gap: 4px; padding: 3px; background: var(--bg-sunken); border: 1px solid var(--border); border-radius: var(--r-md); }
-.tab-switch button { border: 0; background: none; padding: 5px 12px; border-radius: var(--r-sm); cursor: pointer; color: var(--fg-muted); font-weight: 600; font-size: .88rem; }
-.tab-switch button.on { background: var(--raised); color: var(--fg); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
-.file-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); flex-wrap: wrap; }
-.file-row .fn { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: .86rem; }
-.dropzone { border: 2px dashed var(--border-strong); border-radius: var(--r-lg); padding: 22px; text-align: center; color: var(--fg-muted); cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.dropzone:hover, .dropzone.over { border-color: var(--accent); color: var(--fg); background: var(--accent-soft); }
-.dropzone svg { width: 28px; height: 28px; }
-
-/* ---------- Profile ---------- */
-.profile-head { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; margin-bottom: 24px; }
-.profile-head .avatar { width: 104px; height: 104px; border: 1px solid var(--border); }
-.profile-head .bio { color: var(--fg-muted); margin-top: 6px; max-width: 64ch; overflow-wrap: anywhere; }
-.profile-head .meta { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 10px; color: var(--fg-muted); font-size: .9rem; }
-.profile-head .meta b { color: var(--fg); }
-.role-tag { font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 8px; border-radius: var(--r-sm); background: var(--oxide-soft); color: var(--oxide); vertical-align: middle; }
-
-/* ---------- Auth ---------- */
-.auth-wrap { max-width: 440px; margin: 0 auto; }
-.auth-wrap .panel { padding: 28px; }
-.demo-hint { font-size: .88rem; color: var(--fg-muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md); padding: 12px 14px; }
-.demo-hint code { font-family: var(--font-mono); color: var(--fg); }
-
-/* ---------- Footer ---------- */
-.site-footer { border-top: 1px solid var(--border); background: var(--bg-sunken); padding-block: 32px; color: var(--fg-muted); font-size: .9rem; }
-.footer-grid { display: grid; grid-template-columns: 1.5fr repeat(3, 1fr); gap: 24px; }
-.footer-grid h4 { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--fg-faint); margin-bottom: 10px; }
-.footer-grid a { display: block; color: var(--fg-muted); padding: 2px 0; }
-.footer-grid a:hover { color: var(--fg); }
-.footer-grid p { max-width: 42ch; margin-top: 10px; }
-@media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } .footer-grid > :first-child { grid-column: 1 / -1; } }
-
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
-</style>
-</head>
-<body>
-<header class="site-header" id="header"></header>
-<main id="app"><div class="container"><p class="muted">Загружаем каталог…</p></div></main>
-<footer class="site-footer" id="footer"></footer>
-<script>
 'use strict';
 /* =====================================================================
-   Craftory — каталог контента для Minecraft. Всё работает в браузере:
-   данные в localStorage, загруженные файлы и картинки в IndexedDB.
+   Craftory — клиентская часть. Данные приходят с сервера через /api,
+   справочники лежат в shared.js (общие с сервером).
    ===================================================================== */
-
 /* ---------------- Утилиты ---------------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -512,12 +10,6 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const uid = (p = '') => p + Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 const now = () => Date.now();
 const DAY = 864e5;
-function plural(n, one, few, many) {
-  n = Math.abs(n); const m10 = n % 10, m100 = n % 100;
-  if (m10 === 1 && m100 !== 11) return one;
-  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
-  return many;
-}
 const nfCompact = new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 });
 const nfInt = new Intl.NumberFormat('ru-RU');
 const fmtNum = (n) => nfCompact.format(n || 0);
@@ -538,67 +30,8 @@ function fmtSize(b) {
   if (b < 1048576) return `${(b / 1024).toFixed(1).replace('.', ',')} КБ`;
   return `${(b / 1048576).toFixed(1).replace('.', ',')} МБ`;
 }
-const TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
-const slugify = (s) => String(s).toLowerCase().split('').map((c) => TRANSLIT[c] ?? c).join('')
-  .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 48);
-function hashStr(s) { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
-function rng(seed) {
-  let a = seed >>> 0;
-  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
-}
-const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
-function dateKey(t) { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const isUrl = (s) => /^https?:\/\/[^\s]+$/i.test(String(s || '').trim());
-const cmpGV = (a, b) => { const pa = a.split('.').map(Number), pb = b.split('.').map(Number); for (let i = 0; i < 3; i++) { const d = (pb[i] || 0) - (pa[i] || 0); if (d) return d; } return 0; };
-
-/* ---------------- Справочники ---------------- */
-const TYPES = {
-  mod: { label: 'Моды', one: 'Мод', acc: 'мод', path: 'mods', ext: 'jar', icon: 'box', folder: 'mods' },
-  modpack: { label: 'Сборки', one: 'Сборка', acc: 'сборку', path: 'modpacks', ext: 'zip', icon: 'package', folder: null },
-  resourcepack: { label: 'Ресурспаки', one: 'Ресурспак', acc: 'ресурспак', path: 'resourcepacks', ext: 'zip', icon: 'palette', folder: 'resourcepacks' },
-  shader: { label: 'Шейдеры', one: 'Шейдер', acc: 'шейдер', path: 'shaders', ext: 'zip', icon: 'sparkles', folder: 'shaderpacks' },
-  plugin: { label: 'Плагины', one: 'Плагин', acc: 'плагин', path: 'plugins', ext: 'jar', icon: 'server', folder: 'plugins' },
-  datapack: { label: 'Датапаки', one: 'Датапак', acc: 'датапак', path: 'datapacks', ext: 'zip', icon: 'braces', folder: 'datapacks' },
-};
-const TYPE_BY_PATH = Object.fromEntries(Object.entries(TYPES).map(([k, v]) => [v.path, k]));
-const LOADERS = {
-  fabric: { label: 'Fabric', color: '#d5b48f' }, forge: { label: 'Forge', color: '#8f98e8' },
-  neoforge: { label: 'NeoForge', color: '#ef925c' }, quilt: { label: 'Quilt', color: '#b98ae8' },
-  paper: { label: 'Paper', color: '#e5a14d' }, spigot: { label: 'Spigot', color: '#e2b964' },
-  bukkit: { label: 'Bukkit', color: '#e79a63' }, purpur: { label: 'Purpur', color: '#ad8ff0' },
-  folia: { label: 'Folia', color: '#8ccf6c' }, velocity: { label: 'Velocity', color: '#5fbfdc' },
-  iris: { label: 'Iris', color: '#7f74e0' }, optifine: { label: 'OptiFine', color: '#b78fdc' },
-  canvas: { label: 'Canvas', color: '#e39a55' }, vanilla: { label: 'Ванильные', color: '#9aa1ac' },
-  minecraft: { label: 'Minecraft', color: '#7fb05c' }, datapack: { label: 'Датапак', color: '#9aa1ac' },
-};
-const LOADERS_BY_TYPE = {
-  mod: ['fabric', 'forge', 'neoforge', 'quilt'], modpack: ['fabric', 'forge', 'neoforge', 'quilt'],
-  plugin: ['paper', 'spigot', 'bukkit', 'purpur', 'folia', 'velocity'], shader: ['iris', 'optifine', 'canvas', 'vanilla'],
-  resourcepack: ['minecraft'], datapack: ['datapack'],
-};
-const CAT_COMMON = {
-  adventure: 'Приключения', decoration: 'Декор', economy: 'Экономика', equipment: 'Снаряжение', food: 'Еда',
-  'game-mechanics': 'Механики', library: 'Библиотека', magic: 'Магия', management: 'Управление', minigame: 'Мини-игры',
-  mobs: 'Мобы', optimization: 'Оптимизация', social: 'Общение', storage: 'Хранение', technology: 'Технологии',
-  transportation: 'Транспорт', utility: 'Утилиты', worldgen: 'Генерация мира',
-};
-const CATEGORIES = {
-  mod: CAT_COMMON, plugin: CAT_COMMON, datapack: CAT_COMMON,
-  modpack: { adventure: 'Приключения', challenging: 'Хардкор', combat: 'Сражения', 'kitchen-sink': 'Всё и сразу', lightweight: 'Лёгкие', magic: 'Магия', multiplayer: 'Мультиплеер', optimization: 'Оптимизация', quests: 'Квесты', technology: 'Технологии' },
-  resourcepack: { 'vanilla-like': 'Как в ванилле', realistic: 'Реализм', simplistic: 'Минимализм', themed: 'Тематические', cartoon: 'Мультяшные', gui: 'Интерфейс', fonts: 'Шрифты', audio: 'Звуки', models: 'Модели', '16x': '16x', '32x': '32x', '64x': '64x и выше' },
-  shader: { cartoon: 'Мультяшные', fantasy: 'Фэнтези', realistic: 'Реализм', 'semi-realistic': 'Полуреализм', 'vanilla-like': 'Как в ванилле', atmosphere: 'Атмосфера', reflections: 'Отражения', shadows: 'Тени', 'path-tracing': 'Трассировка путей', potato: 'Очень слабые ПК', low: 'Низкие требования', medium: 'Средние требования', high: 'Высокие требования' },
-};
-const GAME_VERSIONS = ['1.21.4', '1.21.3', '1.21.1', '1.21', '1.20.6', '1.20.4', '1.20.2', '1.20.1', '1.19.4', '1.19.2', '1.18.2', '1.17.1', '1.16.5', '1.12.2'];
-const LICENSES = {
-  MIT: 'MIT', 'Apache-2.0': 'Apache 2.0', 'GPL-3.0': 'GPL 3.0', 'LGPL-3.0': 'LGPL 3.0', 'MPL-2.0': 'MPL 2.0',
-  'CC-BY-4.0': 'CC BY 4.0', 'CC0-1.0': 'CC0 (общественное достояние)', ARR: 'Все права защищены',
-};
-const SIDES = { required: 'Обязательно', optional: 'Необязательно', unsupported: 'Не поддерживается' };
-const CHANNELS = { release: 'Релиз', beta: 'Бета', alpha: 'Альфа' };
-const STATUSES = { published: 'Опубликован', unlisted: 'По ссылке', draft: 'Черновик', withheld: 'Скрыт модерацией' };
-const REPORT_REASONS = { spam: 'Спам', malware: 'Вредоносный код', copyright: 'Нарушение авторских прав', inappropriate: 'Неприемлемый контент', broken: 'Не работает / битые файлы', other: 'Другое' };
-const MEMBER_ROLES = ['Владелец', 'Разработчик', 'Художник', 'Тестировщик', 'Переводчик'];
 function envLabel(p) {
   const c = p.clientSide !== 'unsupported', s = p.serverSide !== 'unsupported';
   if (c && s) return p.serverSide === 'optional' ? 'Клиент, сервер по желанию' : p.clientSide === 'optional' ? 'Сервер, клиент по желанию' : 'Клиент и сервер';
@@ -718,79 +151,6 @@ function sceneArt(seed) {
   s += '</svg>';
   const uri = svgUri(s); artCache.set(key, uri); return uri;
 }
-const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
-
-/* ---------------- Хранилище ---------------- */
-const DB_KEY = 'craftory.db.v2', SESSION_KEY = 'craftory.session', PREFS_KEY = 'craftory.prefs', DB_VERSION = 2;
-const store = {
-  ok: true,
-  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); return true; } catch { return false; } },
-  del(k) { try { localStorage.removeItem(k); } catch { /* недоступно */ } },
-};
-(function probeStorage() { try { localStorage.setItem('craftory.probe', '1'); localStorage.removeItem('craftory.probe'); } catch { store.ok = false; } })();
-let db = null;
-let session = { userId: null };
-let prefs = { theme: 'system', view: 'list' };
-function save() {
-  if (!store.ok) return true;
-  const ok = store.set(DB_KEY, JSON.stringify(db));
-  if (!ok) toast('Не удалось сохранить: в хранилище браузера закончилось место. Удалите лишние картинки или сбросьте данные в настройках.', 'error');
-  return ok;
-}
-function saveSession() { store.set(SESSION_KEY, JSON.stringify(session)); }
-function savePrefs() { store.set(PREFS_KEY, JSON.stringify(prefs)); }
-
-/* Файлы и картинки — в IndexedDB, с запасным хранилищем в памяти */
-const Blobs = (() => {
-  const mem = new Map(); const urls = new Map(); let dbp = null;
-  function open() {
-    if (dbp) return dbp;
-    dbp = new Promise((res) => {
-      try {
-        const rq = indexedDB.open('craftory-files', 1);
-        rq.onupgradeneeded = () => rq.result.createObjectStore('blobs');
-        rq.onsuccess = () => res(rq.result);
-        rq.onerror = () => res(null);
-        rq.onblocked = () => res(null);
-      } catch { res(null); }
-    });
-    return dbp;
-  }
-  async function put(key, blob) {
-    const d = await open();
-    if (!d) { mem.set(key, blob); return; }
-    try {
-      await new Promise((res, rej) => { const tx = d.transaction('blobs', 'readwrite'); tx.objectStore('blobs').put(blob, key); tx.oncomplete = res; tx.onerror = () => rej(tx.error); tx.onabort = () => rej(tx.error); });
-    } catch { mem.set(key, blob); }
-  }
-  async function get(key) {
-    if (mem.has(key)) return mem.get(key);
-    const d = await open(); if (!d) return null;
-    return new Promise((res) => { try { const rq = d.transaction('blobs').objectStore('blobs').get(key); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => res(null); } catch { res(null); } });
-  }
-  async function del(key) {
-    mem.delete(key); if (urls.has(key)) { URL.revokeObjectURL(urls.get(key)); urls.delete(key); }
-    const d = await open(); if (!d) return;
-    try { d.transaction('blobs', 'readwrite').objectStore('blobs').delete(key); } catch { /* ignore */ }
-  }
-  async function clear() {
-    mem.clear(); const d = await open(); if (!d) return;
-    try { d.transaction('blobs', 'readwrite').objectStore('blobs').clear(); } catch { /* ignore */ }
-  }
-  async function url(key) {
-    if (urls.has(key)) return urls.get(key);
-    const b = await get(key); if (!b) return null;
-    const u = URL.createObjectURL(b); urls.set(key, u); return u;
-  }
-  return { put, get, del, clear, url };
-})();
-function hydrateImages(root) {
-  $$('img[data-blob]', root).forEach(async (img) => {
-    const u = await Blobs.url(img.dataset.blob);
-    if (u) img.src = u; else img.alt = 'Изображение недоступно';
-  });
-}
 function readImage(file) {
   return new Promise((res, rej) => {
     const u = URL.createObjectURL(file); const img = new Image();
@@ -799,36 +159,27 @@ function readImage(file) {
     img.src = u;
   });
 }
-async function imageToSquareDataURL(file, size = 128) {
+async function canvasBlob(c, type = 'image/webp', quality = 0.9) {
+  const b = await new Promise((res) => c.toBlob(res, type, quality));
+  if (b && b.type === type) return b;
+  return new Promise((res) => c.toBlob(res, 'image/png'));
+}
+async function imageToSquareBlob(file, size = 256) {
   const img = await readImage(file);
   const c = document.createElement('canvas'); c.width = c.height = size;
   const ctx = c.getContext('2d'); const s = Math.min(img.width, img.height);
   ctx.imageSmoothingEnabled = s > size;
   ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, size, size);
-  const webp = c.toDataURL('image/webp', 0.9);
-  return webp.startsWith('data:image/webp') ? webp : c.toDataURL('image/png');
+  return canvasBlob(c);
 }
-async function imageToBlob(file, maxW = 1600) {
+async function imageToBlob(file, maxW = 1920) {
   const img = await readImage(file);
-  const scale = Math.min(1, maxW / img.width);
+  if (file.type === 'image/gif' || img.width <= maxW) return file; // GIF не пережимаем, чтобы сохранить анимацию
+  const scale = maxW / img.width;
   const c = document.createElement('canvas'); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
-  const ctx = c.getContext('2d'); ctx.imageSmoothingEnabled = scale < 1; ctx.drawImage(img, 0, 0, c.width, c.height);
-  return new Promise((res) => c.toBlob((b) => res(b || file), 'image/webp', 0.88));
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return canvasBlob(c, 'image/webp', 0.88);
 }
-
-/* ---------------- Пароли ---------------- */
-async function hashPassword(pass, salt) {
-  const data = `${salt}:${pass}`;
-  if (window.crypto && crypto.subtle) {
-    try {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(data));
-      return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
-    } catch { /* запасной вариант ниже */ }
-  }
-  let h = 0; for (let i = 0; i < 5000; i++) h = hashStr(`${h}${data}`);
-  return `f${h.toString(16)}`;
-}
-
 /* ---------------- Markdown ---------------- */
 function safeUrl(u, img = false) {
   u = String(u).replace(/&amp;/g, '&');
@@ -876,220 +227,49 @@ function md(src) {
   return out.join('\n');
 }
 
-/* ---------------- Демо-данные ---------------- */
-const SEED_USERS = [
-  ['nightfox', 'NightFox', 'Пишу оптимизационные моды и иногда шейдеры. Профилировщик — мой лучший друг.'],
-  ['ironbeard', 'Ironbeard', 'Технические моды, автоматизация и всё, что крутится и жужжит.'],
-  ['mira_dev', 'Мира', 'Интерфейсы, декор и уютные мелочи для выживания.'],
-  ['pixelwren', 'PixelWren', 'Рисую текстуры 16×16 с 2013 года.'],
-  ['kotofey', 'Котофей', 'Серверные плагины для небольших сообществ. Отвечаю в issues по вечерам.'],
-  ['stonecutter', 'Stonecutter Studio', 'Команда из трёх человек: генерация мира и приключения.'],
-  ['aurora_lab', 'Aurora Lab', 'Шейдеры и эксперименты со светом.'],
-  ['vlad_codes', 'Влад', 'Датапаки и игровые механики без единого мода.'],
-  ['sunny_blocks', 'SunnyBlocks', 'Собираю сборки для друзей, а потом выкладываю их сюда.'],
-  ['deepslate', 'Deepslate', 'Мобы, биомы и подземелья.'],
-];
-// [тип, название, описание, категории, загрузчики, автор, клиент, сервер, лицензия, в подборке, возможности]
-const SEED_PROJECTS = [
-  ['mod', 'Lumen Engine', 'Новый движок рендера: заметно больше кадров в секунду без изменения картинки.', ['optimization'], ['fabric', 'neoforge', 'quilt'], 'nightfox', 'required', 'unsupported', 'LGPL-3.0', true,
-    ['Пакетная отрисовка чанков и отсечение невидимой геометрии', 'Работает вместе с шейдерами через Iris', 'Не меняет внешний вид игры', 'Отдельное меню с настройками качества']],
-  ['mod', 'Pathfinder Map', 'Миникарта и карта мира с метками, путевыми точками и пещерным режимом.', ['utility', 'adventure'], ['fabric', 'forge', 'neoforge'], 'mira_dev', 'required', 'optional', 'MIT', true,
-    ['Миникарта с вращением и масштабом', 'Путевые точки с цветами и группами', 'Пещерный режим и отдельная карта Незера', 'Общие метки на сервере, если мод установлен и там']],
-  ['mod', 'Ironworks', 'Технологии на меди: дробилки, плавильни, конвейеры и электросети.', ['technology', 'storage'], ['forge', 'neoforge'], 'ironbeard', 'required', 'required', 'GPL-3.0', true,
-    ['Больше 40 машин с понятными интерфейсами', 'Электросеть на медных проводах с потерями на расстоянии', 'Конвейеры, фильтры и сортировщики', 'Книга-справочник с рецептами в игре']],
-  ['mod', 'Hearth & Home', 'Сотни предметов мебели и декора в ванильном стиле.', ['decoration'], ['fabric', 'forge', 'neoforge'], 'mira_dev', 'required', 'required', 'MIT', false,
-    ['Столы, стулья, шкафы и полки из всех пород дерева', 'Работающая кухня: плита, раковина, холодильник', 'Лампы с регулировкой яркости', 'Рецепты в верстаке и в камнерезе']],
-  ['mod', 'Pocket Pantry', 'Расширенная кухня: 60 блюд, грядки, специи и бонусы за разнообразное питание.', ['food', 'game-mechanics'], ['fabric', 'quilt'], 'sunny_blocks', 'required', 'required', 'MIT', false,
-    ['60 новых блюд и 12 культур', 'Специи усиливают эффекты еды', 'Бонус к здоровью за разнообразный рацион', 'Совместимость с модами на фермерство']],
-  ['mod', 'Deep Veins', 'Рудные жилы, пещерные кристаллы и новые жеоды ниже нулевой высоты.', ['worldgen'], ['fabric', 'forge', 'neoforge'], 'stonecutter', 'required', 'required', 'Apache-2.0', false,
-    ['Длинные рудные жилы вместо одиночных блоков', 'Кристаллические пещеры с подсветкой', 'Настраиваемая частота генерации', 'Подходит для существующих миров: меняются только новые чанки']],
-  ['mod', 'Skyward Isles', 'Парящие острова с собственными биомами, подземельями и погодой.', ['worldgen', 'adventure'], ['fabric', 'neoforge'], 'stonecutter', 'required', 'required', 'ARR', true,
-    ['Новое измерение из парящих островов', '8 биомов и 3 вида подземелий', 'Ветер, который сносит стрелы и элитры', 'Босс — Хранитель облаков']],
-  ['mod', 'Arcane Glyphs', 'Магия через руны: собирайте заклинания из символов и усилителей.', ['magic', 'equipment'], ['forge', 'neoforge'], 'deepslate', 'required', 'required', 'LGPL-3.0', false,
-    ['32 руны, которые сочетаются друг с другом', 'Посохи и мантии с ячейками под усилители', 'Мана восстанавливается у источников в мире', 'Подробный гримуар в игре']],
-  ['mod', 'Frostbound Fauna', 'Мобы холодных биомов: песцы, снежные совы, мамонты и ледяные големы.', ['mobs'], ['fabric', 'forge'], 'deepslate', 'required', 'required', 'MIT', false,
-    ['9 новых мобов с анимациями', 'Мамонтов можно приручить и навьючить', 'Снежные совы доставляют предметы', 'Ледяной голем охраняет деревни в тайге']],
-  ['mod', 'Quick Stack', 'Сортировка инвентаря и раскладка по ближайшим сундукам одной клавишей.', ['utility', 'storage'], ['fabric', 'forge', 'neoforge', 'quilt'], 'nightfox', 'required', 'optional', 'MIT', false,
-    ['Сортировка по типу, имени или количеству', 'Раскладка по сундукам в радиусе 8 блоков', 'Блокировка слотов от сортировки', 'Работает на любом сервере, если включён клиентский режим']],
-  ['mod', 'Copper Rails', 'Скоростные медные рельсы, стрелки, станции и вагоны для жидкостей.', ['transportation', 'technology'], ['fabric', 'neoforge'], 'ironbeard', 'required', 'required', 'MIT', false,
-    ['Рельсы с разгоном до 3× от ванильных', 'Стрелки и станции с расписанием', 'Вагоны-цистерны и вагоны для животных', 'Окисление снижает скорость, воск защищает']],
-  ['mod', 'Kernel Lib', 'Общая библиотека для модов NightFox: настройки, сетевые пакеты и утилиты рендера.', ['library'], ['fabric', 'forge', 'neoforge', 'quilt'], 'nightfox', 'required', 'required', 'MIT', false,
-    ['Единый экран настроек для всех модов автора', 'Простая отправка сетевых пакетов', 'Ничего не делает сама по себе']],
-  ['mod', 'Echo Chat', 'Улучшенный чат: история, упоминания, вкладки каналов и копирование сообщений.', ['social', 'utility'], ['fabric', 'quilt'], 'vlad_codes', 'required', 'unsupported', 'MIT', false,
-    ['Чат хранит до 2000 сообщений', 'Подсветка и звук при упоминании ника', 'Вкладки для личных сообщений и каналов', 'Копирование сообщения по щелчку правой кнопкой']],
-  ['mod', 'Bastion Raids', 'Пиглины устраивают рейды на ваши базы: волны, боссы и награды.', ['adventure', 'mobs'], ['forge', 'neoforge'], 'deepslate', 'required', 'required', 'ARR', false,
-    ['Рейды начинаются после первого похода в бастион', '5 волн с нарастающей сложностью', 'Босс — Брут-полководец', 'Награды: золотые доспехи с уникальными чарами']],
-  ['modpack', 'Copper Age', 'Техно-выживание вокруг меди: от первой печи до автоматических фабрик. 180 модов и квесты.', ['technology', 'quests', 'multiplayer'], ['neoforge'], 'sunny_blocks', 'required', 'optional', 'MIT', true,
-    ['Около 400 квестов с наградами', 'Сбалансированные рецепты между модами', 'Готовые настройки для сервера', 'Нужно 6 ГБ оперативной памяти']],
-  ['modpack', 'Starfall Survival', 'Приключенческая сборка со звёздными подземельями, магией и боссами. 220 модов.', ['adventure', 'magic', 'combat'], ['forge'], 'sunny_blocks', 'required', 'optional', 'ARR', false,
-    ['20 боссов и система классов', 'Магия, ковка оружия и питомцы', 'Своя сюжетная линия на 30 часов', 'Нужно 8 ГБ оперативной памяти']],
-  ['modpack', 'Lite & Fast', 'Ванильный геймплей, только быстрее: оптимизация и полезные мелочи.', ['lightweight', 'optimization'], ['fabric'], 'nightfox', 'required', 'optional', 'MIT', false,
-    ['Только клиентские оптимизации и удобства', 'Работает на 2 ГБ оперативной памяти', 'Подключается к любым ванильным серверам']],
-  ['modpack', 'Frontier Hardcore', 'Жёсткое выживание: жажда, температура, переломы и одна жизнь.', ['challenging', 'adventure'], ['fabric'], 'sunny_blocks', 'required', 'optional', 'MIT', false,
-    ['Жажда и температура тела', 'Переломы и лечение шинами', 'Одна жизнь и таблица рекордов', 'Отключённые точки возрождения']],
-  ['resourcepack', 'Soft Pastel 16x', 'Мягкие пастельные текстуры, по которым всё ещё узнаются ванильные блоки.', ['vanilla-like', '16x', 'cartoon'], ['minecraft'], 'pixelwren', 'required', 'unsupported', 'CC-BY-4.0', true,
-    ['Перерисованы все блоки и предметы', 'Пастельные мобы и интерфейс', 'Совместим с OptiFine CTM для стекла']],
-  ['resourcepack', 'Crisp Classic', 'Ванильные текстуры с аккуратными контурами и чистой палитрой.', ['vanilla-like', '16x'], ['minecraft'], 'pixelwren', 'required', 'unsupported', 'CC-BY-4.0', false,
-    ['Те же текстуры, но без шума', 'Улучшенная читаемость руд', 'Поддержка всех версий с 1.16']],
-  ['resourcepack', 'Stonehold 32x', 'Средневековый ресурспак: камень, дерево и кованое железо в 32 пикселя.', ['themed', '32x', 'realistic'], ['minecraft'], 'mira_dev', 'required', 'unsupported', 'ARR', false,
-    ['Средневековый стиль для всех блоков', 'Свои модели для дверей и фонарей', 'Тематический интерфейс из пергамента']],
-  ['resourcepack', 'Clean GUI', 'Тёмный минималистичный интерфейс для инвентаря, меню и сундуков.', ['gui', 'simplistic'], ['minecraft'], 'mira_dev', 'required', 'unsupported', 'MIT', false,
-    ['Тёмные меню и инвентарь', 'Контрастные слоты и подсказки', 'Совместим с большинством модов']],
-  ['shader', 'Dawnlight', 'Тёплый рассеянный свет, мягкие тени и объёмные облака. Работает даже на ноутбуках.', ['semi-realistic', 'atmosphere', 'low'], ['iris', 'optifine'], 'aurora_lab', 'required', 'unsupported', 'MIT', true,
-    ['Мягкие тени с плавными краями', 'Объёмные облака и туман над водой', 'Четыре пресета производительности', '60 кадров на встроенной графике в пресете «Низкий»']],
-  ['shader', 'Velvet Fog', 'Атмосферные шейдеры с плотным туманом, лучами света и осенней палитрой.', ['fantasy', 'atmosphere', 'medium'], ['iris'], 'aurora_lab', 'required', 'unsupported', 'MPL-2.0', false,
-    ['Объёмный туман в лесах и болотах', 'Лучи света сквозь листву', 'Тёплая осенняя цветокоррекция']],
-  ['shader', 'Glasswater', 'Реалистичная вода с отражениями и каустикой.', ['realistic', 'reflections', 'high'], ['iris', 'optifine'], 'nightfox', 'required', 'unsupported', 'LGPL-3.0', false,
-    ['Отражения в экранном пространстве', 'Каустика на дне водоёмов', 'Волны зависят от погоды']],
-  ['shader', 'Pathlight RT', 'Трассировка путей для мощных видеокарт: глобальное освещение и честные отражения.', ['path-tracing', 'realistic', 'high'], ['iris'], 'aurora_lab', 'required', 'unsupported', 'ARR', false,
-    ['Глобальное освещение без запекания', 'Свет от светящихся блоков в реальном времени', 'Нужна видеокарта уровня RTX 3070 и выше']],
-  ['shader', 'Toon Shade', 'Мультяшный цел-шейдинг с контурами и плоским освещением.', ['cartoon', 'potato'], ['iris', 'optifine', 'canvas'], 'pixelwren', 'required', 'unsupported', 'MIT', false,
-    ['Контуры вокруг блоков и мобов', 'Плоские тени в три тона', 'Почти не влияет на FPS']],
-  ['plugin', 'LandClaim', 'Приват территорий золотой лопатой: флаги, доверенные игроки и аренда участков.', ['management', 'economy'], ['paper', 'spigot', 'purpur', 'folia'], 'kotofey', 'unsupported', 'required', 'MIT', true,
-    ['Приват выделением золотой лопатой', 'Флаги: PvP, огонь, взрывы, вход', 'Аренда и продажа участков', 'Поддержка Folia и регионального тикания']],
-  ['plugin', 'TradeHall', 'Аукцион и рынок игроков с удобным меню, комиссиями и историей сделок.', ['economy'], ['paper', 'spigot', 'purpur'], 'kotofey', 'unsupported', 'required', 'MIT', false,
-    ['Аукцион и мгновенные продажи', 'Настраиваемые комиссии', 'История сделок и возврат просроченных лотов']],
-  ['plugin', 'SimpleHomes', 'Команды /home, /warp и /spawn с лимитами по группам и задержкой телепорта.', ['utility', 'management'], ['paper', 'spigot', 'bukkit', 'purpur'], 'kotofey', 'unsupported', 'required', 'Apache-2.0', false,
-    ['Лимиты точек дома по группам прав', 'Задержка и отмена телепорта при движении', 'Хранение в SQLite или MySQL']],
-  ['plugin', 'ProxyGuard', 'Защита сети на Velocity: антибот, белые списки и ограничение подключений.', ['management', 'utility'], ['velocity'], 'vlad_codes', 'unsupported', 'required', 'GPL-3.0', false,
-    ['Капча при подозрительном входе', 'Лимит подключений с одного адреса', 'Белые списки по серверам сети']],
-  ['datapack', 'Graves', 'После смерти появляется надгробие с вашими вещами. Алмазы больше не пропадают.', ['game-mechanics', 'utility'], ['datapack'], 'vlad_codes', 'optional', 'required', 'CC0-1.0', true,
-    ['Надгробие хранит предметы и опыт', 'Координаты смерти в чате', 'Работает без модов, даже на Realms']],
-  ['datapack', 'Wandering Merchant+', 'Странствующий торговец с редкими товарами и картами сокровищ.', ['economy', 'adventure'], ['datapack'], 'vlad_codes', 'optional', 'required', 'MIT', false,
-    ['Товары меняются каждую игровую неделю', 'Карты к затонувшим кораблям и подземельям', 'Торговец приходит чаще к опытным игрокам']],
-  ['datapack', 'Seasons', 'Четыре сезона: листва меняет цвет, зимой идёт снег, осенью растёт урожай.', ['worldgen', 'game-mechanics'], ['datapack'], 'vlad_codes', 'optional', 'required', 'MIT', false,
-    ['Сезон длится 7 игровых дней', 'Зимой замерзают реки', 'Урожайность зависит от сезона']],
-];
-const CHANGELOG_POOL = [
-  'Исправлен вылет при входе в мир на некоторых видеокартах', 'Обновлены переводы, спасибо сообществу', 'Чанки загружаются быстрее',
-  'Исправлена утечка памяти при смене измерений', 'Новые параметры в меню настроек', 'Исправлено мерцание текстур вдали',
-  'Совместимость с последними версиями популярных модов', 'Переработан экран настроек', 'Добавлено пять новых предметов',
-  'Мелкие исправления и чистка кода', 'Исправлена рассинхронизация с сервером', 'Уменьшен размер файла',
-];
-const GALLERY_TITLES = ['Закат над равниной', 'Пещера на глубине −40', 'База в горах', 'Деревня у реки', 'Ночной лес', 'Вид с высоты', 'Берег океана', 'Утро в тайге'];
-const INSTALL_TEXT = {
-  mod: (l) => `1. Установите загрузчик ${l} для нужной версии Minecraft.\n2. Скачайте файл на вкладке «Версии».\n3. Положите его в папку \`mods\` в каталоге игры.`,
-  modpack: () => '1. Скачайте архив сборки.\n2. Импортируйте его в лаунчер, который поддерживает сборки (Prism Launcher, ATLauncher и другие).\n3. Выделите сборке столько памяти, сколько указано в описании.',
-  resourcepack: () => '1. Скачайте архив и не распаковывайте его.\n2. Положите архив в папку `resourcepacks`.\n3. Включите ресурспак в меню «Настройки → Пакеты ресурсов».',
-  shader: () => '1. Установите Iris или OptiFine.\n2. Положите архив в папку `shaderpacks`.\n3. Выберите шейдер в меню «Настройки графики → Шейдеры».',
-  plugin: (l) => `1. Остановите сервер на ${l}.\n2. Положите файл в папку \`plugins\`.\n3. Запустите сервер: файл настроек появится в \`plugins/\`.`,
-  datapack: () => '1. Скачайте архив.\n2. Положите его в папку `datapacks` внутри папки мира.\n3. Выполните `/reload` или перезайдите в мир.',
-};
-function seedDescription(p, features, r) {
-  const loaderName = LOADERS[p.loaders[0]]?.label || '';
-  return [
-    `## Возможности`, ...features.map((f) => `- ${f}`), '',
-    `## Установка`, INSTALL_TEXT[p.type](loaderName), '',
-    `## Совместимость`,
-    `Проверено на Minecraft ${p.gameVersions.slice(-1)[0]}–${p.gameVersions[0]}. Сообщайте об ошибках через трекер задач: прикладывайте лог и список установленных модов.`, '',
-    r() < 0.6 ? `> **Совет.** Перед обновлением делайте резервную копию мира. Это занимает минуту и спасает часы работы.` : `> **Вопросы и предложения** обсуждаем в сообществе проекта, ссылка в боковой панели.`,
-    '', '## Частые вопросы',
-    `**Можно ли использовать в своей сборке?** ${p.license === 'ARR' ? 'Только с письменного разрешения автора.' : `Да, на условиях лицензии ${LICENSES[p.license]}.`}`, '',
-    `**Будет ли порт на другие версии?** Следите за вкладкой «Журнал изменений».`,
-  ].join('\n');
-}
 
-async function buildSeed() {
-  const r = rng(20261006); const t0 = now();
-  const data = { version: DB_VERSION, users: [], projects: [], versions: [], follows: [], collections: [], notifications: [], reports: [], stats: {}, created: t0 };
-  const mkUser = async (username, displayName, bio, role = 'user', pass = null, ageDays = 400) => {
-    const salt = uid('s'); const u = { id: uid('u_'), username, displayName, bio, role, email: `${username}@example.com`, avatar: null, salt, passHash: await hashPassword(pass || uid('x'), salt), created: t0 - ageDays * DAY };
-    data.users.push(u); return u;
-  };
-  const byName = {};
-  for (const [n, d, b] of SEED_USERS) byName[n] = await mkUser(n, d, b, 'user', null, 300 + Math.floor(r() * 1200));
-  const admin = await mkUser('admin', 'Модератор Craftory', 'Слежу за порядком в каталоге.', 'admin', 'admin1234', 1500);
-  const demo = await mkUser('demo', 'Демо-игрок', 'Играю в выживание с друзьями и собираю сборки.', 'user', 'demo1234', 120);
-
-  for (const [type, title, summary, cats, loaders, ownerName, client, server, license, featured, features] of SEED_PROJECTS) {
-    const owner = byName[ownerName];
-    const ageDays = 40 + Math.floor(r() * 1300);
-    const created = t0 - ageDays * DAY;
-    const p = {
-      id: uid('p_'), slug: slugify(title), type, title, summary, description: '', icon: null,
-      categories: cats, loaders: [], gameVersions: [], clientSide: client, serverSide: server, license,
-      links: {}, ownerId: owner.id, members: [{ userId: owner.id, role: 'Владелец' }], status: 'published',
-      created, updated: created, downloads: 0, followers: 0, gallery: [], featured,
-    };
-    if (r() < 0.8) p.links.source = `https://git.example.com/${ownerName}/${p.slug}`;
-    if (r() < 0.7) p.links.issues = `https://git.example.com/${ownerName}/${p.slug}/issues`;
-    if (r() < 0.4) p.links.wiki = `https://wiki.example.com/${p.slug}`;
-    if (r() < 0.5) p.links.discord = `https://chat.example.com/${p.slug}`;
-    if (r() < 0.25) p.links.donate = `https://donate.example.com/${ownerName}`;
-    if (r() < 0.3) { const other = pick(r, Object.values(byName).filter((u) => u.id !== owner.id)); p.members.push({ userId: other.id, role: pick(r, MEMBER_ROLES.slice(1)) }); }
-
-    // Версии
-    const n = 3 + Math.floor(r() * 6);
-    let major = r() < 0.4 ? 0 : 1 + Math.floor(r() * 3), minor = Math.floor(r() * 4) + (major === 0 ? 1 : 0), patch = 0;
-    const span = Math.min(GAME_VERSIONS.length - 1, 4 + Math.floor(r() * 8));
-    const totalDl = Math.floor(Math.exp(7.5 + r() * 7.5) * (featured ? 3 : 1));
-    const weights = Array.from({ length: n }, (_, i) => 0.4 + r() + i * 0.3);
-    const wsum = weights.reduce((a, b) => a + b, 0);
-    for (let i = 0; i < n; i++) {
-      if (i > 0) { if (r() < 0.25) { minor++; patch = 0; } else patch++; }
-      const number = `${major}.${minor}.${patch}`;
-      const center = Math.round((1 - i / Math.max(1, n - 1)) * span);
-      const width = 1 + Math.floor(r() * 3);
-      const gvs = GAME_VERSIONS.slice(Math.max(0, center - width + 1), center + 1);
-      const vLoaders = loaders.filter((l, li) => li === 0 || r() < 0.75);
-      const channel = i === n - 1 && r() < 0.25 ? 'beta' : r() < 0.08 ? 'alpha' : 'release';
-      const published = created + Math.round(((i + 0.2) / n) * ageDays * DAY * 0.97);
-      const changes = Array.from({ length: 2 + Math.floor(r() * 3) }, () => pick(r, CHANGELOG_POOL)).filter((v, k, a) => a.indexOf(v) === k);
-      if (i > 0 && gvs[0] && r() < 0.5) changes.unshift(`Поддержка Minecraft ${gvs[0]}`);
-      const loaderTag = type === 'mod' || type === 'plugin' ? `+${vLoaders[0]}` : '';
-      const size = type === 'modpack' ? 2e5 + r() * 3e6 : type === 'resourcepack' ? 5e5 + r() * 2e7 : type === 'shader' ? 1e5 + r() * 8e5 : type === 'datapack' ? 2e4 + r() * 2e5 : 1e5 + r() * 6e6;
-      const v = {
-        id: uid('v_'), projectId: p.id, name: `${title} ${number}`, number, channel, loaders: vLoaders, gameVersions: gvs,
-        changelog: `### Изменения\n${changes.map((c) => `- ${c}`).join('\n')}`, published, authorId: owner.id,
-        downloads: Math.round((totalDl * weights[i]) / wsum),
-        files: [{ id: uid('f_'), name: `${p.slug}-${number}${loaderTag}.${TYPES[type].ext}`, size: Math.round(size), primary: true, blob: null }],
-        deps: [],
-      };
-      data.versions.push(v);
-    }
-    // Галерея
-    const gCount = { shader: 4, resourcepack: 3, modpack: 3, mod: Math.floor(r() * 4), plugin: r() < 0.5 ? 1 : 0, datapack: 1 }[type];
-    for (let g = 0; g < gCount; g++) p.gallery.push({ id: uid('g_'), gen: hashStr(p.slug + g), blob: null, title: pick(r, GALLERY_TITLES), desc: g === 0 ? `Скриншот с ${p.title}.` : '', featured: g === 0 });
-    data.projects.push(p);
-    // Статистика загрузок за 90 дней
-    const st = {}; const avg = totalDl / Math.max(ageDays, 90) * (1.2 + r());
-    for (let d = 0; d < 90; d++) {
-      const t = t0 - d * DAY; if (t < created) break;
-      st[dateKey(t)] = Math.max(0, Math.round(avg * (0.65 + r() * 0.7) * (1 + 0.2 * Math.sin((d / 7) * Math.PI * 2)) * (1 + (90 - d) / 300)));
-    }
-    data.stats[p.id] = st;
+/* ---------------- Состояние и API ---------------- */
+let db = null; // данные, которые видит текущий пользователь; присылает сервер
+const prefs = { theme: 'system', view: 'list' };
+function loadPrefs() { try { Object.assign(prefs, JSON.parse(localStorage.getItem('craftory.prefs') || '{}')); } catch { /* хранилище недоступно */ } }
+function savePrefs() { try { localStorage.setItem('craftory.prefs', JSON.stringify(prefs)); } catch { /* хранилище недоступно */ } }
+class ApiError extends Error { constructor(message, status) { super(message); this.status = status; } }
+async function api(method, url, body) {
+  const opts = { method, credentials: 'same-origin', headers: { 'X-Craftory': '1', Accept: 'application/json' } };
+  if (body !== undefined) { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  let res;
+  try { res = await fetch(url, opts); } catch { throw new ApiError('Нет связи с сервером. Проверьте подключение и попробуйте ещё раз.', 0); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 401 && db && db.me) refreshState().then(() => renderHeader()); // сессия истекла
+    throw new ApiError(data.error || `Ошибка сервера (${res.status}). Попробуйте ещё раз.`, res.status);
   }
-  // Пересчёт производных полей
-  for (const p of data.projects) {
-    const vs = data.versions.filter((v) => v.projectId === p.id);
-    p.downloads = vs.reduce((a, v) => a + v.downloads, 0);
-    p.followers = Math.round(p.downloads / (25 + r() * 120));
-    p.loaders = [...new Set(vs.flatMap((v) => v.loaders))];
-    p.gameVersions = [...new Set(vs.flatMap((v) => v.gameVersions))].sort(cmpGV);
-    p.updated = Math.max(...vs.map((v) => v.published));
-    const features = SEED_PROJECTS.find((s) => slugify(s[1]) === p.slug)[10];
-    p.description = seedDescription(p, features, r);
-  }
-  // Зависимости: моды автора nightfox требуют Kernel Lib
-  const kernel = data.projects.find((p) => p.slug === 'kernel-lib');
-  for (const p of data.projects.filter((x) => x.ownerId === kernel.ownerId && x.type === 'mod' && x.id !== kernel.id)) {
-    data.versions.filter((v) => v.projectId === p.id).forEach((v) => v.deps.push({ projectId: kernel.id, type: 'required' }));
-  }
-  // Подписки, коллекции и уведомления демо-пользователя
-  const bySlug = (s) => data.projects.find((p) => p.slug === s);
-  ['lumen-engine', 'pathfinder-map', 'dawnlight', 'graves', 'copper-age'].forEach((s) => data.follows.push({ userId: demo.id, projectId: bySlug(s).id, created: t0 - 20 * DAY }));
-  data.collections.push({ id: uid('c_'), ownerId: demo.id, name: 'Выживание с друзьями', description: 'То, что ставим на наш сервер и себе в клиент.', public: true, projects: ['lumen-engine', 'pathfinder-map', 'quick-stack', 'graves', 'landclaim'].map((s) => bySlug(s).id), created: t0 - 30 * DAY });
-  data.collections.push({ id: uid('c_'), ownerId: demo.id, name: 'Красивая картинка', description: 'Шейдеры и ресурспаки, которые хочу попробовать.', public: false, projects: ['dawnlight', 'velvet-fog', 'soft-pastel-16x'].map((s) => bySlug(s).id), created: t0 - 9 * DAY });
-  const lumen = bySlug('lumen-engine'); const lumenLast = data.versions.filter((v) => v.projectId === lumen.id).sort((a, b) => b.published - a.published)[0];
-  data.notifications.push(
-    { id: uid('n_'), userId: demo.id, type: 'version', text: `Вышла версия ${lumenLast.number} проекта Lumen Engine`, link: `/project/lumen-engine/version/${lumenLast.id}`, read: false, created: t0 - 2 * 3600e3 },
-    { id: uid('n_'), userId: demo.id, type: 'info', text: 'Добро пожаловать в Craftory! Подписывайтесь на проекты, чтобы узнавать о новых версиях.', link: '/mods', read: true, created: t0 - 100 * DAY },
-  );
-  data.reports.push(
-    { id: uid('r_'), reporterId: demo.id, projectId: bySlug('bastion-raids').id, reason: 'broken', body: 'Версия для 1.20.1 вылетает при генерации бастиона, лог приложил в трекер.', status: 'open', created: t0 - 3 * DAY },
-    { id: uid('r_'), reporterId: byName.mira_dev.id, projectId: bySlug('proxyguard').id, reason: 'other', body: 'В описании нет ссылки на исходный код, хотя указана GPL-3.0.', status: 'open', created: t0 - 26 * 3600e3 },
-  );
+  if (data.state) db = data.state;
   return data;
+}
+async function refreshState() { try { db = await api('GET', '/api/state'); } catch { /* оставляем прежние данные */ } return db; }
+function uploadFile(blob, name, kind, onProgress) {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('POST', `/api/uploads?kind=${kind}`);
+    x.setRequestHeader('X-Craftory', '1');
+    x.setRequestHeader('X-Filename', encodeURIComponent(name || 'file'));
+    x.setRequestHeader('Content-Type', blob.type || 'application/octet-stream');
+    x.upload.onprogress = (e) => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    x.onload = () => {
+      let d = {}; try { d = JSON.parse(x.responseText); } catch { /* пустой ответ */ }
+      if (x.status >= 200 && x.status < 300) resolve(d); else reject(new ApiError(d.error || `Не удалось загрузить файл (${x.status}).`, x.status));
+    };
+    x.onerror = () => reject(new ApiError('Загрузка прервалась: нет связи с сервером.', 0));
+    x.send(blob);
+  });
+}
+const mediaUrl = (id) => `/media/${encodeURIComponent(id)}`;
+/* Блокирует кнопку на время запроса и показывает ошибку, если он не удался */
+async function busy(btn, fn, label = 'Сохраняем…') {
+  const old = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.textContent = label; }
+  try { return await fn(); } finally { if (btn && btn.isConnected) { btn.disabled = false; btn.innerHTML = old; } }
 }
 
 /* ---------------- Доступ к данным ---------------- */
@@ -1099,7 +279,7 @@ const projById = (id) => db.projects.find((p) => p.id === id);
 const projBySlug = (s) => db.projects.find((p) => p.slug === s) || projById(s);
 const versionById = (id) => db.versions.find((v) => v.id === id);
 const versionsOf = (pid) => db.versions.filter((v) => v.projectId === pid).sort((a, b) => b.published - a.published);
-const me = () => (session.userId ? userById(session.userId) || null : null);
+const me = () => (db && db.me ? userById(db.me) || null : null);
 const isMember = (p, u = me()) => !!u && p.members.some((m) => m.userId === u.id);
 const isOwner = (p, u = me()) => !!u && p.ownerId === u.id;
 const isAdmin = (u = me()) => !!u && u.role === 'admin';
@@ -1107,27 +287,15 @@ const canEdit = (p, u = me()) => !!u && (isMember(p, u) || isAdmin(u));
 const canView = (p, u = me()) => p.status === 'published' || p.status === 'unlisted' || canEdit(p, u);
 const isListed = (p) => p.status === 'published';
 const isFollowing = (p, u = me()) => !!u && db.follows.some((f) => f.userId === u.id && f.projectId === p.id);
-const projectIcon = (p) => p.icon || iconArt(hashStr(p.id + p.slug.length));
-const userAvatar = (u) => (u && u.avatar) || iconArt(hashStr(`${u ? u.id : 'x'}avatar`));
+const projectIcon = (p) => (p.icon ? mediaUrl(p.icon) : iconArt(hashStr(p.id)));
+const userAvatar = (u) => (u && u.avatar ? mediaUrl(u.avatar) : iconArt(hashStr(`${u ? u.id : 'x'}avatar`)));
 const unreadCount = (u = me()) => (u ? db.notifications.filter((n) => n.userId === u.id && !n.read).length : 0);
-function recompute(p) {
-  const vs = versionsOf(p.id);
-  p.loaders = [...new Set(vs.flatMap((v) => v.loaders))];
-  p.gameVersions = [...new Set(vs.flatMap((v) => v.gameVersions))].sort(cmpGV);
-  p.downloads = vs.reduce((a, v) => a + (v.downloads || 0), 0) + (p.deletedDownloads || 0);
-  if (vs.length) p.updated = Math.max(p.updated, vs[0].published);
-}
-function notify(userId, text, link, type = 'info') {
-  if (!userId) return;
-  db.notifications.push({ id: uid('n_'), userId, type, text, link, read: false, created: now() });
-}
 function coverOf(p) {
   const g = p.gallery.find((x) => x.featured) || p.gallery[0];
-  if (!g) return { src: sceneArt(hashStr(`${p.id}cover`)) };
-  return g.blob ? { src: BLANK, blob: g.blob } : { src: sceneArt(g.gen) };
+  return g ? galleryImg(g) : { src: sceneArt(hashStr(`${p.id}cover`)) };
 }
-function imgAttrs(o) { return `src="${esc(o.src)}"${o.blob ? ` data-blob="${esc(o.blob)}"` : ''}`; }
-function galleryImg(g) { return g.blob ? { src: BLANK, blob: g.blob } : { src: sceneArt(g.gen) }; }
+function imgAttrs(o) { return `src="${esc(o.src)}"`; }
+function galleryImg(g) { return { src: g.upload ? mediaUrl(g.upload) : sceneArt(g.gen ?? hashStr(g.id)) }; }
 function compactVersions(list) {
   const sorted = [...list].sort(cmpGV);
   if (sorted.length <= 4) return sorted;
@@ -1151,7 +319,6 @@ function openModal({ title, body, foot = '', wide = false, onMount }) {
   bd.addEventListener('mousedown', (e) => { if (e.target === bd) m.close(); });
   bd.addEventListener('click', (e) => { if (e.target.closest('[data-close]')) { e.preventDefault(); m.close(); } });
   document.body.append(bd); modalStack.push(m);
-  hydrateImages(bd);
   onMount?.(bd, m);
   const f = bd.querySelector('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=file]), textarea, select');
   (f || bd.querySelector('.modal-head button')).focus();
@@ -1232,7 +399,6 @@ function render() {
   app.innerHTML = page.html;
   document.title = page.title ? `${page.title} — Craftory` : 'Craftory — моды, сборки и шейдеры для Minecraft';
   page.after?.(app);
-  hydrateImages(app);
   window.scrollTo(0, keepScroll ? y : 0);
   keepScroll = false;
 }
@@ -1266,7 +432,6 @@ function renderHeader(path = parseHash().path) {
   const u = me(); const unread = unreadCount(u); const theme = effectiveTheme();
   const nav = NAV.map((n) => `<a href="#${n.href}" class="${path === n.href ? 'active' : ''}">${n.label}</a>`).join('');
   $('#header').innerHTML = `
-  ${store.ok ? '' : '<div class="storage-banner"><div class="container">Браузер не разрешает сохранять данные. Всё, что вы измените, пропадёт после перезагрузки страницы.</div></div>'}
   <div class="container header-inner">
     <a class="brand" href="#/" aria-label="Craftory — на главную">${LOGO}<span>Craftory</span></a>
     <nav class="main-nav" aria-label="Разделы">${nav}</nav>
@@ -1310,7 +475,7 @@ function renderFooter() {
 A.toggleMenu = (el) => { const d = el.closest('.dropdown'); const open = !d.classList.contains('open'); closeMenus(); d.classList.toggle('open', open); };
 A.toggleNav = () => $('.mobile-nav')?.classList.toggle('open');
 A.toggleTheme = () => { prefs.theme = effectiveTheme() === 'dark' ? 'light' : 'dark'; savePrefs(); applyTheme(); renderHeader(); };
-A.logout = () => { session.userId = null; saveSession(); toast('Вы вышли из аккаунта.'); go('/'); };
+A.logout = async () => { try { await api('POST', '/api/auth/signout'); toast('Вы вышли из аккаунта.'); go('/'); } catch (e) { toast(e.message, 'error'); } };
 
 /* ---------------- Общие компоненты ---------------- */
 function authorOf(p) { return userById(p.ownerId); }
@@ -1523,7 +688,6 @@ route(/^\/(mods|modpacks|resourcepacks|shaders|plugins|datapacks)$/, (path, quer
       : emptyState('search', 'Ничего не нашлось', 'Попробуйте убрать часть фильтров или изменить запрос.', chips.length ? '<button class="btn" data-action="clearFilters">Сбросить фильтры</button>' : '');
     $('#pager').innerHTML = pagination(s.p, pages, 'browsePage');
     $$('.seg button').forEach((b) => b.classList.toggle('on', b.dataset.view === s.view));
-    hydrateImages($('#results'));
   };
   A.browsePage = (el) => { s.p = +el.dataset.page; update(); $('#app').scrollIntoView({ behavior: 'smooth' }); };
   A.dropFilter = (el) => {
@@ -1646,7 +810,7 @@ function versionTable(p, vs, { compact = false } = {}) {
     </tr>`).join('')}</tbody></table></div>`;
 }
 route(/^\/project\/([^/]+)(?:\/(gallery|changelog|versions))?$/, (slug, tab = 'description', query) => {
-  const p = projBySlug(slug); if (!p || !canView(p)) return pageNotFound('Проект не найден', 'Возможно, его удалили, скрыли или ссылка с опечаткой.');
+  const p = projBySlug(slug); if (!p) return loadMissingProject(slug);
   if (p.slug !== slug) return { redirect: `/project/${p.slug}${tab !== 'description' ? `/${tab}` : ''}` };
   const vs = versionsOf(p.id); const base = `#/project/${esc(p.slug)}`;
   const tabs = [['description', 'Описание', base, null], ['gallery', 'Галерея', `${base}/gallery`, p.gallery.length], ['changelog', 'Журнал изменений', `${base}/changelog`, null], ['versions', 'Версии', `${base}/versions`, vs.length]];
@@ -1694,7 +858,7 @@ A.lightbox = (el) => {
     lb.innerHTML = `<button class="btn btn-icon lb-close" aria-label="Закрыть">${ic('x')}</button>
       ${p.gallery.length > 1 ? `<button class="btn btn-icon lb-nav lb-prev" aria-label="Предыдущее">${ic('chevL')}</button><button class="btn btn-icon lb-nav lb-next" aria-label="Следующее">${ic('chevR')}</button>` : ''}
       <figure><img ${imgAttrs(galleryImg(g))} alt="${esc(g.title)}"><figcaption><b>${esc(g.title)}</b>${g.desc ? ` — ${esc(g.desc)}` : ''} <span style="opacity:.6">(${i + 1} из ${p.gallery.length})</span></figcaption></figure>`;
-    hydrateImages(lb); $('.lb-close', lb).focus();
+    $('.lb-close', lb).focus();
   };
   lb.addEventListener('click', (e) => {
     if (e.target.closest('.lb-close') || e.target === lb) lb.remove();
@@ -1708,37 +872,40 @@ A.copyLink = async (el) => {
   try { await navigator.clipboard.writeText(text); toast('Скопировано в буфер обмена.'); }
   catch { openModal({ title: 'Скопируйте вручную', body: `<input class="input mono" id="copy-field" value="${esc(text)}" readonly>`, onMount: (m) => $('#copy-field', m).select() }); }
 };
-A.follow = (el) => {
+A.follow = async (el) => {
   const u = me(); if (!u) { go(`/auth/signin?next=${encodeURIComponent(parseHash().path)}`); return; }
-  const p = projById(el.dataset.id);
-  if (isFollowing(p)) { db.follows = db.follows.filter((f) => !(f.userId === u.id && f.projectId === p.id)); p.followers = Math.max(0, p.followers - 1); toast(`Вы отписались от ${p.title}.`); }
-  else {
-    db.follows.push({ userId: u.id, projectId: p.id, created: now() }); p.followers++;
-    if (p.ownerId !== u.id) notify(p.ownerId, `${u.displayName} подписался на ${p.title}`, `/user/${u.username}`, 'follow');
-    toast(`Вы подписались на ${p.title}. Мы сообщим о новых версиях.`);
-  }
-  save(); rerender();
+  const p = projById(el.dataset.id); const was = isFollowing(p);
+  try {
+    await busy(el, () => api(was ? 'DELETE' : 'POST', `/api/projects/${p.id}/follow`), '…');
+    toast(was ? `Вы отписались от ${p.title}.` : `Вы подписались на ${p.title}. Мы сообщим о новых версиях.`);
+    rerender();
+  } catch (e) { toast(e.message, 'error'); }
 };
+
+/* Проект, которого нет в общих данных (например, доступный только по ссылке), загружаем отдельно */
+const missingTried = new Map();
+function loadMissingProject(slug) {
+  const t = missingTried.get(slug);
+  if (t && Date.now() - t < 2000) return pageNotFound('Проект не найден', 'Возможно, его удалили, скрыли или ссылка с опечаткой.');
+  missingTried.set(slug, Date.now());
+  api('GET', `/api/projects/${encodeURIComponent(slug)}`).then((b) => {
+    for (const p of b.projects) if (!projById(p.id)) db.projects.push(p);
+    for (const v of b.versions) if (!versionById(v.id)) db.versions.push(v);
+  }).catch(() => {}).finally(() => rerender());
+  return { title: 'Загрузка', html: '<div class="container"><p class="muted">Загружаем проект…</p></div>' };
+}
 
 /* ---------------- Скачивание ---------------- */
 function bestVersion(p, gv, loader) {
   const vs = versionsOf(p.id).filter((v) => (!gv || v.gameVersions.includes(gv)) && (!loader || v.loaders.includes(loader)));
   return vs.find((v) => v.channel === 'release') || vs[0] || null;
 }
-async function downloadFile(v, f) {
-  const p = projById(v.projectId);
-  v.downloads++; p.downloads++;
-  const k = dateKey(now()); db.stats[p.id] = db.stats[p.id] || {}; db.stats[p.id][k] = (db.stats[p.id][k] || 0) + 1;
-  save();
-  let blob = f.blob ? await Blobs.get(f.blob) : null; let name = f.name;
-  if (!blob) {
-    blob = new Blob([`Craftory — демонстрационный файл\n\nПроект: ${p.title}\nВерсия: ${v.name} (${v.number})\nФайл: ${f.name}\nЗагрузчики: ${v.loaders.join(', ')}\nВерсии игры: ${v.gameVersions.join(', ')}\n\nУ демо-проектов нет настоящих файлов. Загрузите свою версию с файлом, и скачиваться будет именно он.\n`], { type: 'text/plain' });
-    name = `${f.name}.txt`;
-  }
-  const url = URL.createObjectURL(blob); const a = document.createElement('a');
-  a.href = url; a.download = name; document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
-  toast(f.blob ? `Скачивание: ${name}` : `Скачивание: ${name}. У демо-проектов вместо файла текстовая заглушка.`);
+function downloadFile(v, f) {
+  const a = document.createElement('a');
+  a.href = `/download/${encodeURIComponent(f.id)}`; a.download = '';
+  document.body.append(a); a.click(); a.remove();
+  v.downloads++; const p = projById(v.projectId); if (p) p.downloads++;
+  toast(f.hasFile ? `Скачивание: ${f.name}` : `Скачивание: ${f.name}. У демо-проектов вместо файла текстовая заглушка.`);
   if (parseHash().path.startsWith('/project/')) rerender();
 }
 A.downloadVersion = (el) => { const v = versionById(el.dataset.id); const f = v.files.find((x) => x.id === el.dataset.file) || v.files.find((x) => x.primary) || v.files[0]; if (f) downloadFile(v, f); };
@@ -1768,8 +935,9 @@ A.downloadModal = (el) => {
 
 /* ---------------- Версия ---------------- */
 route(/^\/project\/([^/]+)\/version\/([^/]+)$/, (slug, vid) => {
-  const p = projBySlug(slug); const v = versionById(vid);
-  if (!p || !v || v.projectId !== p.id || !canView(p)) return pageNotFound('Версия не найдена');
+  const p = projBySlug(slug); if (!p) return loadMissingProject(slug);
+  const v = versionById(vid);
+  if (!v || v.projectId !== p.id) return pageNotFound('Версия не найдена');
   const author = userById(v.authorId);
   const deps = v.deps.map((d) => ({ ...d, p: projById(d.projectId) })).filter((d) => d.p);
   const depLabel = { required: 'Обязательная', optional: 'Необязательная', incompatible: 'Несовместима' };
@@ -1801,6 +969,9 @@ route(/^\/project\/([^/]+)\/version\/([^/]+)$/, (slug, vid) => {
 /* =====================================================================
    Создание и редактирование проектов, версии
    ===================================================================== */
+const errText = (e) => (e && e.message) || 'Что-то пошло не так. Попробуйте ещё раз.';
+const submitBtn = (f) => $('button[type=submit]', f) || $(`button[form="${f.id}"]`);
+
 A.createProject = () => {
   const u = me(); if (!u) { toast('Войдите, чтобы опубликовать проект.'); go('/auth/signin?next=%2Fdashboard%2Fprojects'); return; }
   let slugTouched = false;
@@ -1821,22 +992,14 @@ A.createProject = () => {
     },
   });
 };
-F.createProject = (f) => {
-  const d = formData(f); const u = me(); const slug = slugify(d.slug || d.title);
-  if (!d.title.trim()) return fieldError(f, 'Укажите название.');
-  if (!slug) return fieldError(f, 'Адрес должен содержать хотя бы одну латинскую букву или цифру.');
-  if (projBySlug(slug)) return fieldError(f, `Адрес «${slug}» уже занят. Придумайте другой.`);
-  if (!d.summary.trim()) return fieldError(f, 'Напишите краткое описание в одну фразу.');
-  const p = {
-    id: uid('p_'), slug, type: d.type, title: d.title.trim(), summary: d.summary.trim(), description: '', icon: null,
-    categories: [], loaders: [], gameVersions: [], clientSide: d.type === 'plugin' ? 'unsupported' : 'required', serverSide: ['plugin', 'datapack'].includes(d.type) ? 'required' : 'optional',
-    license: 'MIT', links: {}, ownerId: u.id, members: [{ userId: u.id, role: 'Владелец' }], status: 'draft', visibility: d.visibility,
-    created: now(), updated: now(), downloads: 0, followers: 0, gallery: [], featured: false,
-  };
-  db.projects.push(p); save();
-  modalStack.forEach((m) => m.close());
-  toast('Черновик создан. Заполните описание и загрузите первую версию.');
-  go(`/project/${p.slug}/settings`);
+F.createProject = async (f) => {
+  const d = formData(f);
+  try {
+    const r = await busy(submitBtn(f), () => api('POST', '/api/projects', { type: d.type, title: d.title, slug: d.slug, summary: d.summary, visibility: d.visibility }), 'Создаём…');
+    modalStack.slice().forEach((m) => m.close());
+    toast('Черновик создан. Заполните описание и загрузите первую версию.');
+    go(`/project/${r.slug}/settings`);
+  } catch (e) { fieldError(f, errText(e)); }
 };
 
 const SETTINGS_SECTIONS = [['general', 'Основное', 'settings'], ['description', 'Описание', 'book'], ['gallery', 'Галерея', 'image'], ['versions', 'Версии', 'file'], ['links', 'Ссылки', 'link'], ['members', 'Участники', 'users']];
@@ -1849,8 +1012,8 @@ route(/^\/project\/([^/]+)\/settings(?:\/([a-z]+))?$/, (slug, section = 'general
     const cats = CATEGORIES[p.type];
     body = `<div class="panel"><h2>Основное</h2>
       <div class="icon-edit" style="margin:18px 0"><img class="p-icon" src="${esc(projectIcon(p))}" alt="Иконка проекта" width="96" height="96">
-        <div class="stack" style="gap:8px"><label class="btn" for="icon-file">${ic('upload')}Загрузить иконку</label><input type="file" id="icon-file" accept="image/*" hidden>
-        ${p.icon ? `<button class="btn btn-ghost btn-sm" data-action="removeIcon" data-id="${p.id}">Вернуть сгенерированную</button>` : ''}<span class="hint faint" style="font-size:.82rem">Квадрат, будет уменьшен до 128×128.</span></div></div>
+        <div class="stack" style="gap:8px"><label class="btn" for="icon-file" id="icon-label">${ic('upload')}Загрузить иконку</label><input type="file" id="icon-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+        ${p.icon ? `<button class="btn btn-ghost btn-sm" data-action="removeIcon" data-id="${p.id}">Вернуть сгенерированную</button>` : ''}<span class="hint faint" style="font-size:.82rem">Квадрат, будет уменьшен до 256×256.</span></div></div>
       <form data-form="projGeneral" data-id="${p.id}" class="stack" style="gap:16px">
         <div class="field"><label for="pg-title">Название</label><input class="input" id="pg-title" name="title" value="${esc(p.title)}" maxlength="64" required></div>
         <div class="field"><label for="pg-slug">Адрес</label><input class="input mono" id="pg-slug" name="slug" value="${esc(p.slug)}" maxlength="48" required pattern="[a-z0-9\\-]+"></div>
@@ -1870,15 +1033,20 @@ route(/^\/project\/([^/]+)\/settings(?:\/([a-z]+))?$/, (slug, section = 'general
     after = (root) => {
       $('#icon-file', root).addEventListener('change', async (e) => {
         const file = e.target.files[0]; if (!file) return;
-        try { p.icon = await imageToSquareDataURL(file, 128); p.updated = now(); save(); toast('Иконка обновлена.'); rerender(); }
-        catch (err) { toast(err.message, 'error'); }
+        const label = $('#icon-label', root); label.textContent = 'Загружаем…';
+        try {
+          const blob = await imageToSquareBlob(file, 256);
+          const up = await uploadFile(blob, file.name, 'image');
+          await api('PATCH', `/api/projects/${p.id}`, { icon: up.id });
+          toast('Иконка обновлена.'); rerender();
+        } catch (err) { toast(errText(err), 'error'); label.innerHTML = `${ic('upload')}Загрузить иконку`; }
       });
     };
   } else if (section === 'description') {
     body = `<div class="panel"><form data-form="projDescription" data-id="${p.id}" class="stack" style="gap:14px">
       <div class="row" style="justify-content:space-between"><h2>Описание</h2><div class="tab-switch" role="tablist"><button type="button" class="on" data-mode="edit">Редактор</button><button type="button" data-mode="preview">Предпросмотр</button></div></div>
       <p class="muted" style="font-size:.9rem">Поддерживается Markdown: <code class="mono">## заголовок</code>, <code class="mono">**жирный**</code>, <code class="mono">*курсив*</code>, списки, ссылки, цитаты, таблицы и блоки кода.</p>
-      <textarea class="textarea code" id="pd-text" name="description" style="min-height:420px" aria-label="Текст описания">${esc(p.description)}</textarea>
+      <textarea class="textarea code" id="pd-text" name="description" maxlength="${LIMITS.descriptionChars}" style="min-height:420px" aria-label="Текст описания">${esc(p.description)}</textarea>
       <div class="md panel" id="pd-preview" hidden></div>
       <div class="form-actions"><button class="btn btn-primary" type="submit">${ic('check')}Сохранить описание</button></div></form></div>`;
     after = (root) => {
@@ -1893,7 +1061,7 @@ route(/^\/project\/([^/]+)\/settings(?:\/([a-z]+))?$/, (slug, section = 'general
     body = `<div class="panel"><h2>Галерея</h2><p class="muted" style="margin:6px 0 16px">Скриншоты показываются на вкладке «Галерея». Изображение с отметкой «Обложка» видно в карточке проекта.</p>
       <form data-form="galleryAdd" data-id="${p.id}" class="stack" style="gap:12px">
         <label class="dropzone" for="g-file" id="g-drop">${ic('image')}<b>Выберите изображение</b><span id="g-file-name" style="font-size:.86rem">PNG, JPG, WebP или GIF, до 10 МБ</span></label>
-        <input type="file" id="g-file" name="file" accept="image/*" hidden>
+        <input type="file" id="g-file" name="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
         <div class="field-row"><div class="field"><label for="g-title">Подпись</label><input class="input" id="g-title" name="title" maxlength="80" placeholder="Например: База у водопада"></div>
         <div class="field"><label for="g-desc">Описание</label><input class="input" id="g-desc" name="desc" maxlength="200"></div></div>
         <label class="check"><input type="checkbox" name="featured" value="1">Сделать обложкой</label>
@@ -1917,11 +1085,11 @@ route(/^\/project\/([^/]+)\/settings(?:\/([a-z]+))?$/, (slug, section = 'general
     const L = p.links || {};
     const def = [['source', 'Исходный код', 'https://git.example.com/you/project'], ['issues', 'Трекер ошибок', 'https://git.example.com/you/project/issues'], ['wiki', 'Вики', 'https://wiki.example.com/project'], ['discord', 'Сообщество (чат, форум)', 'https://chat.example.com/invite'], ['donate', 'Поддержать автора', 'https://donate.example.com/you']];
     body = `<div class="panel"><h2>Ссылки</h2><p class="muted" style="margin:6px 0 16px">Показываются в боковой панели проекта. Только адреса, начинающиеся с https:// или http://.</p>
-      <form data-form="projLinks" data-id="${p.id}" class="stack" style="gap:14px">${def.map(([k, l, ph]) => `<div class="field"><label for="pl-${k}">${l}</label><input class="input" id="pl-${k}" name="${k}" type="url" value="${esc(L[k] || '')}" placeholder="${ph}"></div>`).join('')}
+      <form data-form="projLinks" data-id="${p.id}" class="stack" style="gap:14px">${def.map(([k, l, ph]) => `<div class="field"><label for="pl-${k}">${l}</label><input class="input" id="pl-${k}" name="${k}" type="url" maxlength="300" value="${esc(L[k] || '')}" placeholder="${ph}"></div>`).join('')}
       <div class="form-actions"><button class="btn btn-primary" type="submit">${ic('check')}Сохранить ссылки</button></div></form></div>`;
   } else if (section === 'members') {
     body = `<div class="panel"><h2>Участники</h2><p class="muted" style="margin:6px 0 16px">Участники могут редактировать проект и загружать версии. Удалить проект может только владелец.</p>
-      <div class="stack" style="gap:8px">${p.members.map((mb) => { const u = userById(mb.userId); if (!u) return ''; return `<div class="file-row"><img class="avatar" src="${esc(userAvatar(u))}" width="36" height="36" alt=""><span style="flex:1;min-width:0"><a href="#/user/${esc(u.username)}" style="font-weight:700;color:var(--fg)">${esc(u.displayName)}</a> <span class="faint">@${esc(u.username)}</span><br><small class="faint">${esc(mb.role)}</small></span>${u.id !== p.ownerId && (isOwner(p) || isAdmin()) ? `<button class="btn btn-sm btn-danger" data-action="removeMember" data-id="${p.id}" data-u="${u.id}">Убрать</button>` : ''}</div>`; }).join('')}</div>
+      <div class="stack" style="gap:8px">${p.members.map((mb) => { const u = userById(mb.userId); if (!u) return ''; return `<div class="file-row"><img class="avatar" src="${esc(userAvatar(u))}" width="36" height="36" alt=""><span style="flex:1;min-width:0"><a href="#/user/${esc(u.username)}" style="font-weight:700;color:var(--fg)">${esc(u.displayName)}</a> <span class="faint">@${esc(u.username)}</span><br><small class="faint">${esc(mb.role)}</small></span>${u.id !== p.ownerId && (isOwner(p) || isAdmin() || u.id === me().id) ? `<button class="btn btn-sm btn-danger" data-action="removeMember" data-id="${p.id}" data-u="${u.id}">${u.id === me().id ? 'Покинуть проект' : 'Убрать'}</button>` : ''}</div>`; }).join('')}</div>
       ${isOwner(p) || isAdmin() ? `<form data-form="addMember" data-id="${p.id}" class="field-row" style="margin-top:18px;align-items:end">
         <div class="field"><label for="am-user">Имя пользователя</label><input class="input" id="am-user" name="username" required placeholder="например, pixelwren"></div>
         <div class="field"><label for="am-role">Роль</label><select class="select" id="am-role" name="role">${MEMBER_ROLES.slice(1).map((r) => `<option>${r}</option>`).join('')}</select></div>
@@ -1936,68 +1104,66 @@ route(/^\/project\/([^/]+)\/settings(?:\/([a-z]+))?$/, (slug, section = 'general
     after,
   };
 });
-F.projGeneral = (f) => {
-  const p = projById(f.dataset.id); const d = formData(f); const cats = formList(f, 'categories');
-  const slug = slugify(d.slug);
-  if (!d.title.trim()) return fieldError(f, 'Название не может быть пустым.');
-  if (!slug) return fieldError(f, 'Адрес должен содержать латинские буквы или цифры.');
-  const other = projBySlug(slug); if (other && other.id !== p.id) return fieldError(f, `Адрес «${slug}» уже занят другим проектом.`);
+F.projGeneral = async (f) => {
+  const d = formData(f); const cats = formList(f, 'categories');
   if (cats.length > 5) return fieldError(f, `Выбрано ${cats.length} категорий, можно не больше пяти.`);
-  if (d.clientSide === 'unsupported' && d.serverSide === 'unsupported') return fieldError(f, 'Проект должен работать хотя бы на клиенте или на сервере.');
-  const status = d.status || p.status;
-  if ((status === 'published' || status === 'unlisted') && !versionsOf(p.id).length) return fieldError(f, 'Нельзя опубликовать проект без версий. Загрузите файл в разделе «Версии».');
-  if (status === 'withheld' && !isAdmin()) return fieldError(f, 'Скрыть проект может только модератор.');
-  const wasDraft = p.status === 'draft';
-  Object.assign(p, { title: d.title.trim(), slug, summary: d.summary.trim(), categories: cats, clientSide: d.clientSide, serverSide: d.serverSide, license: d.license, status, updated: now() });
-  save(); toast(wasDraft && status === 'published' ? 'Проект опубликован и появился в каталоге.' : 'Изменения сохранены.');
-  go(`/project/${p.slug}/settings/general`, { replace: true });
+  const body = { title: d.title, slug: d.slug, summary: d.summary, categories: cats, clientSide: d.clientSide, serverSide: d.serverSide, license: d.license };
+  if (d.status) body.status = d.status;
+  try {
+    const r = await busy(submitBtn(f), () => api('PATCH', `/api/projects/${f.dataset.id}`, body));
+    toast(r.published ? 'Проект опубликован и появился в каталоге.' : 'Изменения сохранены.');
+    go(`/project/${r.slug}/settings/general`, { replace: true });
+  } catch (e) { fieldError(f, errText(e)); }
 };
-F.projDescription = (f) => { const p = projById(f.dataset.id); p.description = formData(f).description; p.updated = now(); save(); toast('Описание сохранено.'); };
-F.projLinks = (f) => {
-  const p = projById(f.dataset.id); const d = formData(f); const links = {};
-  for (const [k, v] of Object.entries(d)) { const t = v.trim(); if (!t) continue; if (!isUrl(t)) return fieldError(f, `Ссылка «${t}» должна начинаться с https:// или http://.`); links[k] = t; }
-  p.links = links; save(); fieldError(f, ''); toast('Ссылки сохранены.');
+F.projDescription = async (f) => {
+  try { await busy(submitBtn(f), () => api('PATCH', `/api/projects/${f.dataset.id}`, { description: formData(f).description })); fieldError(f, ''); toast('Описание сохранено.'); }
+  catch (e) { fieldError(f, errText(e)); }
+};
+F.projLinks = async (f) => {
+  const links = formData(f);
+  for (const v of Object.values(links)) if (v.trim() && !isUrl(v)) return fieldError(f, `Ссылка «${v.trim()}» должна начинаться с https:// или http://.`);
+  try { await busy(submitBtn(f), () => api('PATCH', `/api/projects/${f.dataset.id}`, { links })); fieldError(f, ''); toast('Ссылки сохранены.'); }
+  catch (e) { fieldError(f, errText(e)); }
 };
 F.galleryAdd = async (f) => {
-  const p = projById(f.dataset.id); const file = $('#g-file', f).files[0]; const d = formData(f);
+  const file = $('#g-file', f).files[0]; const d = formData(f);
   if (!file) return fieldError(f, 'Выберите изображение.');
-  if (file.size > 10 * 1048576) return fieldError(f, `Файл весит ${fmtSize(file.size)}, а можно не больше 10 МБ.`);
+  if (file.size > LIMITS.imageBytes) return fieldError(f, `Файл весит ${fmtSize(file.size)}, а можно не больше 10 МБ.`);
+  const btn = submitBtn(f);
   try {
-    const blob = await imageToBlob(file); const key = uid('img_'); await Blobs.put(key, blob);
-    if (d.featured) p.gallery.forEach((g) => { g.featured = false; });
-    p.gallery.push({ id: uid('g_'), gen: null, blob: key, title: d.title.trim() || file.name.replace(/\.[^.]+$/, ''), desc: d.desc.trim(), featured: !!d.featured || !p.gallery.length });
-    save(); toast('Изображение добавлено.'); rerender();
-  } catch (e) { fieldError(f, e.message); }
+    await busy(btn, async () => {
+      const blob = await imageToBlob(file);
+      const up = await uploadFile(blob, file.name, 'image', (x) => { btn.textContent = `Загружаем… ${Math.round(x * 100)}%`; });
+      await api('POST', `/api/projects/${f.dataset.id}/gallery`, { upload: up.id, title: d.title, desc: d.desc, featured: !!d.featured });
+    }, 'Загружаем…');
+    toast('Изображение добавлено.'); rerender();
+  } catch (e) { fieldError(f, errText(e)); }
 };
-A.galleryFeature = (el) => { const p = projById(el.dataset.id); p.gallery.forEach((g) => { g.featured = g.id === el.dataset.g; }); save(); rerender(); };
+A.galleryFeature = async (el) => {
+  try { await busy(el, () => api('PATCH', `/api/projects/${el.dataset.id}/gallery/${el.dataset.g}`, { featured: true }), '…'); rerender(); } catch (e) { toast(errText(e), 'error'); }
+};
 A.galleryDelete = async (el) => {
   const p = projById(el.dataset.id); const g = p.gallery.find((x) => x.id === el.dataset.g);
   if (!(await confirmDialog({ title: 'Удалить изображение?', text: `«${g.title}» исчезнет из галереи.`, confirm: 'Удалить', danger: true }))) return;
-  if (g.blob) Blobs.del(g.blob);
-  p.gallery = p.gallery.filter((x) => x !== g); if (g.featured && p.gallery[0]) p.gallery[0].featured = true;
-  save(); toast('Изображение удалено.'); rerender();
+  try { await api('DELETE', `/api/projects/${p.id}/gallery/${g.id}`); toast('Изображение удалено.'); rerender(); } catch (e) { toast(errText(e), 'error'); }
 };
-A.removeIcon = (el) => { const p = projById(el.dataset.id); p.icon = null; save(); rerender(); };
+A.removeIcon = async (el) => { try { await api('PATCH', `/api/projects/${el.dataset.id}`, { icon: null }); rerender(); } catch (e) { toast(errText(e), 'error'); } };
 A.deleteProject = async (el) => {
   const p = projById(el.dataset.id);
   if (!(await confirmDialog({ title: 'Удалить проект?', text: `Проект «${p.title}», его версии, файлы и изображения будут удалены навсегда.`, confirm: 'Удалить навсегда', danger: true, typeToConfirm: p.slug }))) return;
-  versionsOf(p.id).forEach((v) => v.files.forEach((fl) => fl.blob && Blobs.del(fl.blob)));
-  p.gallery.forEach((g) => g.blob && Blobs.del(g.blob));
-  db.versions = db.versions.filter((v) => v.projectId !== p.id);
-  db.follows = db.follows.filter((x) => x.projectId !== p.id);
-  db.collections.forEach((c) => { c.projects = c.projects.filter((id) => id !== p.id); });
-  db.reports = db.reports.filter((r) => r.projectId !== p.id);
-  db.projects = db.projects.filter((x) => x.id !== p.id); delete db.stats[p.id];
-  save(); toast(`Проект «${p.title}» удалён.`); go('/dashboard/projects');
+  try { await api('DELETE', `/api/projects/${p.id}`); toast(`Проект «${p.title}» удалён.`); go('/dashboard/projects'); } catch (e) { toast(errText(e), 'error'); }
 };
-F.addMember = (f) => {
-  const p = projById(f.dataset.id); const d = formData(f); const u = userByName(d.username.trim().replace(/^@/, ''));
-  if (!u) return fieldError(f, `Пользователь «${d.username}» не найден. Проверьте написание имени.`);
-  if (p.members.some((m) => m.userId === u.id)) return fieldError(f, `${u.displayName} уже участник проекта.`);
-  p.members.push({ userId: u.id, role: d.role }); notify(u.id, `Вас добавили в проект ${p.title} с ролью «${d.role}»`, `/project/${p.slug}`, 'member');
-  save(); toast(`${u.displayName} теперь участник проекта.`); rerender();
+F.addMember = async (f) => {
+  const d = formData(f);
+  try { await busy(submitBtn(f), () => api('POST', `/api/projects/${f.dataset.id}/members`, { username: d.username, role: d.role })); toast('Участник добавлен и получил уведомление.'); rerender(); }
+  catch (e) { fieldError(f, errText(e)); }
 };
-A.removeMember = (el) => { const p = projById(el.dataset.id); p.members = p.members.filter((m) => m.userId !== el.dataset.u); save(); toast('Участник удалён.'); rerender(); };
+A.removeMember = async (el) => {
+  const leaving = el.dataset.u === me().id;
+  if (leaving && !(await confirmDialog({ title: 'Покинуть проект?', text: 'Вы больше не сможете редактировать этот проект, пока владелец не пригласит вас снова.', confirm: 'Покинуть', danger: true }))) return;
+  try { await api('DELETE', `/api/projects/${el.dataset.id}/members/${el.dataset.u}`); toast(leaving ? 'Вы покинули проект.' : 'Участник удалён.'); if (leaving) go('/dashboard/projects'); else rerender(); }
+  catch (e) { toast(errText(e), 'error'); }
+};
 
 /* ---------------- Форма версии ---------------- */
 function versionForm(p, v) {
@@ -2006,8 +1172,8 @@ function versionForm(p, v) {
   const loaders = v ? v.loaders : allowed.length === 1 ? allowed : (last ? last.loaders : []);
   const gvs = v ? v.gameVersions : (last ? last.gameVersions : []);
   const others = db.projects.filter((x) => x.id !== p.id && (isListed(x) || canEdit(x)));
-  const deps = v ? [...v.deps] : (last ? [...last.deps] : []);
-  let pending = []; let removed = [];
+  const deps = (v ? v.deps : last ? last.deps : []).map((d) => ({ ...d }));
+  const pending = []; const removed = [];
   const m = openModal({
     title: edit ? `Изменить ${v.name}` : `Новая версия: ${p.title}`, wide: true,
     body: `<form id="vf" class="stack" style="gap:16px">
@@ -2018,7 +1184,7 @@ function versionForm(p, v) {
       </div>
       ${allowed.length > 1 ? `<div class="field"><span class="field-label">${p.type === 'plugin' ? 'Платформы' : 'Загрузчики'}</span><div class="check-grid">${allowed.map((l) => `<label class="check"><input type="checkbox" name="loaders" value="${l}" ${loaders.includes(l) ? 'checked' : ''}>${esc(LOADERS[l].label)}</label>`).join('')}</div></div>` : `<input type="hidden" name="loaders" value="${allowed[0]}">`}
       <div class="field"><span class="field-label">Версии Minecraft</span><div class="check-grid">${GAME_VERSIONS.map((g) => `<label class="check"><input type="checkbox" name="gv" value="${g}" ${gvs.includes(g) ? 'checked' : ''}><span class="mono">${g}</span></label>`).join('')}</div></div>
-      <div class="field"><label for="vf-changelog">Журнал изменений</label><textarea class="textarea code" id="vf-changelog" name="changelog" placeholder="- Исправлен вылет при…&#10;- Добавлено…">${esc(v ? v.changelog : '')}</textarea><span class="hint">Markdown. Подписчики увидят его на странице версии.</span></div>
+      <div class="field"><label for="vf-changelog">Журнал изменений</label><textarea class="textarea code" id="vf-changelog" name="changelog" maxlength="${LIMITS.changelogChars}" placeholder="- Исправлен вылет при…&#10;- Добавлено…">${esc(v ? v.changelog : '')}</textarea><span class="hint">Markdown. Подписчики увидят его на странице версии.</span></div>
       <div class="field"><span class="field-label">Файлы</span>
         <div id="vf-files" class="stack" style="gap:6px"></div>
         <label class="dropzone" for="vf-file" id="vf-drop">${ic('upload')}<b>Перетащите файлы или нажмите, чтобы выбрать</b><span style="font-size:.86rem">Первый файл станет основным. До 100 МБ каждый.</span></label>
@@ -2041,7 +1207,11 @@ function versionForm(p, v) {
         $('#vf-deps', root).innerHTML = deps.map((d, i) => { const dp = projById(d.projectId); return dp ? `<div class="file-row"><img class="p-icon" src="${esc(projectIcon(dp))}" width="28" height="28" alt=""><span style="flex:1">${esc(dp.title)}</span><span class="chip">${{ required: 'Обязательная', optional: 'Необязательная', incompatible: 'Несовместима' }[d.type]}</span><button type="button" class="btn btn-sm btn-icon btn-danger" data-rm-dep="${i}" aria-label="Убрать зависимость">${ic('x')}</button></div>` : ''; }).join('');
       };
       const addFiles = (list) => {
-        for (const file of list) { if (file.size > 100 * 1048576) { toast(`Файл ${file.name} больше 100 МБ и не будет добавлен.`, 'error'); continue; } pending.push(file); }
+        for (const file of list) {
+          if (file.size > LIMITS.fileBytes) { toast(`Файл ${file.name} больше 100 МБ и не будет добавлен.`, 'error'); continue; }
+          if (!file.size) { toast(`Файл ${file.name} пустой и не будет добавлен.`, 'error'); continue; }
+          pending.push(file);
+        }
         drawFiles();
       };
       $('#vf-file', root).addEventListener('change', (e) => { addFiles([...e.target.files]); e.target.value = ''; });
@@ -2062,52 +1232,57 @@ function versionForm(p, v) {
       });
       $('#vf', root).addEventListener('submit', async (e) => {
         e.preventDefault(); const f = e.target; const d = formData(f);
-        const lds = formList(f, 'loaders'); const gv = formList(f, 'gv').sort(cmpGV);
-        const number = d.number.trim();
-        if (!number) return fieldError(f, 'Укажите номер версии, например 1.2.0.');
-        if (versionsOf(p.id).some((x) => x.number === number && (!v || x.id !== v.id))) return fieldError(f, `Версия ${number} уже есть. Номера версий не должны повторяться.`);
+        const lds = formList(f, 'loaders'); const gv = formList(f, 'gv');
+        if (!d.number.trim()) return fieldError(f, 'Укажите номер версии, например 1.2.0.');
         if (!lds.length) return fieldError(f, `Отметьте хотя бы ${p.type === 'plugin' ? 'одну платформу' : 'один загрузчик'}.`);
         if (!gv.length) return fieldError(f, 'Отметьте хотя бы одну версию Minecraft.');
-        const keptFiles = v ? v.files.filter((x) => !removed.includes(x.id)) : [];
-        if (!keptFiles.length && !pending.length) return fieldError(f, 'Добавьте файл версии.');
-        const btn = $('button[type=submit]', m.el); btn.disabled = true; btn.textContent = 'Сохраняем файлы…';
-        const newFiles = [];
-        for (const file of pending) { const key = uid('file_'); await Blobs.put(key, file); newFiles.push({ id: uid('f_'), name: file.name, size: file.size, primary: false, blob: key }); }
-        const files = [...keptFiles, ...newFiles]; if (!files.some((x) => x.primary)) files[0].primary = true;
-        if (v) {
-          v.files.filter((x) => removed.includes(x.id) && x.blob).forEach((x) => Blobs.del(x.blob));
-          Object.assign(v, { number, name: d.name.trim() || `${p.title} ${number}`, channel: d.channel, loaders: lds, gameVersions: gv, changelog: d.changelog, files, deps });
-          recompute(p); save(); m.close(); toast('Версия обновлена.'); rerender();
-        } else {
-          const nv = { id: uid('v_'), projectId: p.id, number, name: d.name.trim() || `${p.title} ${number}`, channel: d.channel, loaders: lds, gameVersions: gv, changelog: d.changelog, files, deps, downloads: 0, published: now(), authorId: me().id };
-          db.versions.push(nv); p.updated = now(); recompute(p);
-          const firstInDraft = p.status === 'draft' && versionsOf(p.id).length === 1;
-          if (p.status === 'published' || p.status === 'unlisted') db.follows.filter((x) => x.projectId === p.id && x.userId !== me().id).forEach((x) => notify(x.userId, `Вышла версия ${number} проекта ${p.title}`, `/project/${p.slug}/version/${nv.id}`, 'version'));
-          save(); m.close();
-          go(`/project/${p.slug}/version/${nv.id}`);
-          if (firstInDraft) {
-            const target = p.visibility === 'unlisted' ? 'unlisted' : 'published';
-            const ok = await confirmDialog({ title: 'Опубликовать проект?', text: `Первая версия загружена. Опубликовать «${p.title}» ${target === 'unlisted' ? 'с доступом по ссылке' : 'в каталоге'} прямо сейчас? Это можно сделать и позже в настройках проекта.`, confirm: 'Опубликовать' });
-            if (ok) { p.status = target; save(); toast(target === 'unlisted' ? 'Проект доступен по ссылке.' : 'Проект опубликован и появился в каталоге.'); rerender(); }
-            else toast('Проект остался черновиком. Опубликовать его можно в разделе «Основное».');
-          } else toast(p.status === 'draft' ? 'Версия загружена. Проект пока черновик.' : `Версия ${number} опубликована.`);
+        const keepFiles = v ? v.files.filter((x) => !removed.includes(x.id)).map((x) => x.id) : [];
+        if (!keepFiles.length && !pending.length) return fieldError(f, 'Добавьте файл версии.');
+        const btn = $('button[type=submit]', m.el); btn.disabled = true;
+        try {
+          const ids = [];
+          for (let i = 0; i < pending.length; i++) {
+            const file = pending[i];
+            const up = await uploadFile(file, file.name, 'file', (x) => { btn.textContent = `Файл ${i + 1} из ${pending.length}: ${Math.round(x * 100)}%`; });
+            ids.push(up.id);
+          }
+          btn.textContent = 'Сохраняем…';
+          const body = { number: d.number, name: d.name, channel: d.channel, loaders: lds, gameVersions: gv, changelog: d.changelog, deps };
+          if (v) {
+            await api('PATCH', `/api/versions/${v.id}`, { ...body, keepFiles, addFiles: ids });
+            m.close(); toast('Версия обновлена.'); rerender();
+          } else {
+            const r = await api('POST', `/api/projects/${p.id}/versions`, { ...body, files: ids });
+            m.close(); go(`/project/${p.slug}/version/${r.id}`);
+            if (r.firstInDraft) offerPublish(p);
+            else toast(p.status === 'draft' ? 'Версия загружена. Проект пока черновик.' : `Версия ${d.number.trim()} опубликована. Подписчики получили уведомление.`);
+          }
+        } catch (err) {
+          fieldError(f, errText(err));
+          btn.disabled = false; btn.innerHTML = edit ? `${ic('check')}Сохранить` : `${ic('upload')}Опубликовать версию`;
         }
       });
       drawFiles(); drawDeps();
     },
   });
 }
+async function offerPublish(p) {
+  const target = p.visibility === 'unlisted' ? 'unlisted' : 'published';
+  const yes = await confirmDialog({ title: 'Опубликовать проект?', text: `Первая версия загружена. Опубликовать «${p.title}» ${target === 'unlisted' ? 'с доступом по ссылке' : 'в каталоге'} прямо сейчас? Это можно сделать и позже в настройках проекта.`, confirm: 'Опубликовать' });
+  if (!yes) { toast('Проект остался черновиком. Опубликовать его можно в разделе «Основное».'); return; }
+  try { await api('PATCH', `/api/projects/${p.id}`, { status: target }); toast(target === 'unlisted' ? 'Проект доступен по ссылке.' : 'Проект опубликован и появился в каталоге.'); rerender(); }
+  catch (e) { toast(errText(e), 'error'); }
+}
 A.newVersion = (el) => versionForm(projById(el.dataset.id));
 A.editVersion = (el) => { const v = versionById(el.dataset.id); versionForm(projById(v.projectId), v); };
 A.deleteVersion = async (el) => {
   const v = versionById(el.dataset.id); const p = projById(v.projectId);
   if (!(await confirmDialog({ title: 'Удалить версию?', text: `Версия ${v.name} и её файлы будут удалены. Загрузки сохранятся в статистике проекта.`, confirm: 'Удалить', danger: true }))) return;
-  v.files.forEach((x) => x.blob && Blobs.del(x.blob));
-  p.deletedDownloads = (p.deletedDownloads || 0) + v.downloads;
-  db.versions = db.versions.filter((x) => x.id !== v.id); recompute(p);
-  if (!versionsOf(p.id).length && p.status !== 'withheld') { p.status = 'draft'; toast('У проекта не осталось версий, он снова стал черновиком.'); }
-  save(); toast('Версия удалена.');
-  go(`/project/${p.slug}/versions`);
+  try {
+    const r = await api('DELETE', `/api/versions/${v.id}`);
+    toast(r.becameDraft ? 'Версия удалена. У проекта не осталось версий, он снова стал черновиком.' : 'Версия удалена.');
+    go(`/project/${p.slug}/versions`);
+  } catch (e) { toast(errText(e), 'error'); }
 };
 
 /* ---------------- Коллекции и жалобы ---------------- */
@@ -2124,16 +1299,19 @@ A.saveToCollection = (el) => {
       <form class="row" id="col-new" style="flex-wrap:nowrap"><input class="input" name="name" maxlength="60" placeholder="Название новой коллекции" aria-label="Название новой коллекции" required><button class="btn" type="submit">${ic('plus')}Создать</button></form>`,
     foot: '<button class="btn btn-primary" data-close>Готово</button>',
     onMount(root) {
-      root.addEventListener('change', (e) => {
+      root.addEventListener('change', async (e) => {
         const cb = e.target.closest('[data-col]'); if (!cb) return;
-        const c = db.collections.find((x) => x.id === cb.dataset.col);
-        c.projects = cb.checked ? [...new Set([...c.projects, p.id])] : c.projects.filter((id) => id !== p.id);
-        save(); toast(cb.checked ? `Добавлено в «${c.name}».` : `Убрано из «${c.name}».`);
+        const c = db.collections.find((x) => x.id === cb.dataset.col); cb.disabled = true;
+        try {
+          await api(cb.checked ? 'PUT' : 'DELETE', `/api/collections/${c.id}/items/${p.id}`);
+          toast(cb.checked ? `Добавлено в «${c.name}».` : `Убрано из «${c.name}».`);
+          $('#col-list', root).innerHTML = draw();
+        } catch (err) { cb.checked = !cb.checked; cb.disabled = false; toast(errText(err), 'error'); }
       });
-      $('#col-new', root).addEventListener('submit', (e) => {
+      $('#col-new', root).addEventListener('submit', async (e) => {
         e.preventDefault(); const name = e.target.name.value.trim(); if (!name) return;
-        db.collections.push({ id: uid('c_'), ownerId: u.id, name, description: '', public: true, projects: [p.id], created: now() });
-        save(); e.target.reset(); $('#col-list', root).innerHTML = draw(); toast(`Коллекция «${name}» создана.`);
+        try { await api('POST', '/api/collections', { name, projectId: p.id }); e.target.reset(); $('#col-list', root).innerHTML = draw(); toast(`Коллекция «${name}» создана.`); }
+        catch (err) { toast(errText(err), 'error'); }
       });
     },
   });
@@ -2147,12 +1325,11 @@ A.report = (el) => {
       <div class="field"><label for="rep-body">Что случилось</label><textarea class="textarea" id="rep-body" name="body" maxlength="2000" required placeholder="Опишите проблему: какая версия, что именно не так, ссылки на доказательства."></textarea></div></form>`,
     foot: '<button class="btn" data-close>Отмена</button><button class="btn btn-danger" type="submit" form="rep">Отправить жалобу</button>',
     onMount(root) {
-      $('#rep', root).addEventListener('submit', (e) => {
+      $('#rep', root).addEventListener('submit', async (e) => {
         e.preventDefault(); const d = formData(e.target);
         if (d.body.trim().length < 10) return fieldError(e.target, 'Опишите проблему подробнее, хотя бы одним предложением.');
-        db.reports.push({ id: uid('r_'), reporterId: u.id, projectId: p.id, reason: d.reason, body: d.body.trim(), status: 'open', created: now() });
-        db.users.filter((x) => x.role === 'admin').forEach((a) => notify(a.id, `Новая жалоба на ${p.title}: ${REPORT_REASONS[d.reason]}`, '/dashboard/moderation', 'report'));
-        save(); m.close(); toast('Жалоба отправлена модераторам. Мы сообщим о решении.');
+        try { await busy($('button[type=submit]', m.el), () => api('POST', `/api/projects/${p.id}/reports`, d), 'Отправляем…'); m.close(); toast('Жалоба отправлена модераторам. Мы сообщим о решении.'); }
+        catch (err) { fieldError(e.target, errText(err)); }
       });
     },
   });
@@ -2214,7 +1391,9 @@ route(/^\/collection\/([^/]+)$/, (id) => {
     </div>`,
   };
 });
-A.uncollect = (el) => { const c = db.collections.find((x) => x.id === el.dataset.id); c.projects = c.projects.filter((id) => id !== el.dataset.p); save(); rerender(); };
+A.uncollect = async (el) => {
+  try { await busy(el, () => api('DELETE', `/api/collections/${el.dataset.id}/items/${el.dataset.p}`), '…'); rerender(); } catch (e) { toast(errText(e), 'error'); }
+};
 A.editCollection = (el) => {
   const c = el.dataset.id ? db.collections.find((x) => x.id === el.dataset.id) : null;
   const m = openModal({
@@ -2224,11 +1403,13 @@ A.editCollection = (el) => {
       <label class="check"><input type="checkbox" name="public" value="1" ${!c || c.public ? 'checked' : ''}>Публичная: видна в профиле и по ссылке</label></form>`,
     foot: `<button class="btn" data-close>Отмена</button><button class="btn btn-primary" type="submit" form="colf">${c ? 'Сохранить' : 'Создать'}</button>`,
     onMount(root) {
-      $('#colf', root).addEventListener('submit', (e) => {
-        e.preventDefault(); const d = formData(e.target); if (!d.name.trim()) return;
-        if (c) Object.assign(c, { name: d.name.trim(), description: d.description.trim(), public: !!d.public });
-        else db.collections.push({ id: uid('c_'), ownerId: me().id, name: d.name.trim(), description: d.description.trim(), public: !!d.public, projects: [], created: now() });
-        save(); m.close(); toast(c ? 'Коллекция сохранена.' : 'Коллекция создана.'); rerender();
+      $('#colf', root).addEventListener('submit', async (e) => {
+        e.preventDefault(); const d = formData(e.target);
+        const body = { name: d.name, description: d.description, public: !!d.public };
+        try {
+          await busy($('button[type=submit]', m.el), () => (c ? api('PATCH', `/api/collections/${c.id}`, body) : api('POST', '/api/collections', body)));
+          m.close(); toast(c ? 'Коллекция сохранена.' : 'Коллекция создана.'); rerender();
+        } catch (err) { fieldError(e.target, errText(err)); }
       });
     },
   });
@@ -2236,7 +1417,7 @@ A.editCollection = (el) => {
 A.deleteCollection = async (el) => {
   const c = db.collections.find((x) => x.id === el.dataset.id);
   if (!(await confirmDialog({ title: 'Удалить коллекцию?', text: `Коллекция «${c.name}» будет удалена. Сами проекты останутся в каталоге.`, confirm: 'Удалить', danger: true }))) return;
-  db.collections = db.collections.filter((x) => x !== c); save(); toast('Коллекция удалена.'); go('/dashboard/collections');
+  try { await api('DELETE', `/api/collections/${c.id}`); toast('Коллекция удалена.'); go('/dashboard/collections'); } catch (e) { toast(errText(e), 'error'); }
 };
 
 /* ---------------- Панель автора ---------------- */
@@ -2333,23 +1514,23 @@ function notifRow(n) {
   return `<div class="notif ${n.read ? '' : 'unread'}"><span class="ic">${ic(NOTIF_ICON[n.type] || 'info')}</span><div class="tx"><a href="#" data-action="openNotif" data-id="${n.id}" style="color:var(--fg)">${esc(n.text)}</a><small>${esc(timeAgo(n.created))}</small></div>
     ${n.read ? '' : `<button class="btn btn-sm btn-ghost btn-icon" data-action="readNotif" data-id="${n.id}" title="Отметить прочитанным" aria-label="Отметить прочитанным">${ic('check')}</button>`}</div>`;
 }
-A.openNotif = (el) => { const n = db.notifications.find((x) => x.id === el.dataset.id); n.read = true; save(); go(n.link || '/dashboard/notifications'); };
-A.readNotif = (el) => { db.notifications.find((x) => x.id === el.dataset.id).read = true; save(); rerender(); };
-A.readAll = () => { db.notifications.forEach((n) => { if (n.userId === me().id) n.read = true; }); save(); rerender(); };
-A.clearRead = () => { db.notifications = db.notifications.filter((n) => n.userId !== me().id || !n.read); save(); rerender(); };
-A.resolveReport = (el) => {
-  const r = db.reports.find((x) => x.id === el.dataset.id); r.status = el.dataset.s; const p = projById(r.projectId);
-  notify(r.reporterId, `Жалоба на ${p ? p.title : 'проект'} ${r.status === 'resolved' ? 'рассмотрена: меры приняты' : 'отклонена: нарушений не нашли'}`, p ? `/project/${p.slug}` : '/', 'moderation');
-  save(); toast('Жалоба закрыта.'); rerender();
-};
-A.withhold = async (el) => {
+const act = (fn) => async (el) => { try { await fn(el); } catch (e) { toast(errText(e), 'error'); } };
+A.openNotif = act(async (el) => {
+  const n = db.notifications.find((x) => x.id === el.dataset.id);
+  if (!n.read) api('POST', '/api/notifications/read', { id: n.id }).then(() => renderHeader()).catch(() => {});
+  go(n.link || '/dashboard/notifications');
+});
+A.readNotif = act(async (el) => { await api('POST', '/api/notifications/read', { id: el.dataset.id }); rerender(); });
+A.readAll = act(async () => { await api('POST', '/api/notifications/read', {}); rerender(); });
+A.clearRead = act(async () => { await api('DELETE', '/api/notifications/read'); rerender(); });
+A.resolveReport = act(async (el) => { await api('PATCH', `/api/reports/${el.dataset.id}`, { status: el.dataset.s }); toast('Жалоба закрыта. Автор жалобы получил уведомление.'); rerender(); });
+A.withhold = act(async (el) => {
   const p = projById(el.dataset.id);
   if (!(await confirmDialog({ title: `Скрыть ${p.title}?`, text: 'Проект пропадёт из каталога. Автор получит уведомление и сможет исправить нарушения.', confirm: 'Скрыть', danger: true }))) return;
-  p.status = 'withheld'; notify(p.ownerId, `Проект ${p.title} скрыт модерацией после жалобы`, `/project/${p.slug}`, 'moderation');
-  const r = db.reports.find((x) => x.id === el.dataset.r); if (r) { r.status = 'resolved'; notify(r.reporterId, `Жалоба на ${p.title} рассмотрена: проект скрыт`, '/', 'moderation'); }
-  save(); toast('Проект скрыт.'); rerender();
-};
-A.restoreProject = (el) => { const p = projById(el.dataset.id); p.status = 'published'; notify(p.ownerId, `Проект ${p.title} снова доступен в каталоге`, `/project/${p.slug}`, 'moderation'); save(); toast('Проект возвращён в каталог.'); rerender(); };
+  await api('PATCH', `/api/projects/${p.id}/moderation`, { status: 'withheld', reportId: el.dataset.r || null });
+  toast('Проект скрыт.'); rerender();
+});
+A.restoreProject = act(async (el) => { await api('PATCH', `/api/projects/${el.dataset.id}/moderation`, { status: 'published' }); toast('Проект возвращён в каталог.'); rerender(); });
 
 /* ---------------- Настройки аккаунта ---------------- */
 const SET = [['profile', 'Профиль', 'user'], ['account', 'Аккаунт', 'shield'], ['appearance', 'Оформление', 'palette'], ['data', 'Данные', 'database']];
@@ -2360,14 +1541,17 @@ route(/^\/settings(?:\/([a-z]+))?$/, (section = 'profile') => {
   if (section === 'profile') {
     body = `<div class="panel"><h2>Профиль</h2>
       <div class="icon-edit" style="margin:18px 0"><img class="avatar" src="${esc(userAvatar(u))}" width="96" height="96" alt="Аватар">
-        <div class="stack" style="gap:8px"><label class="btn" for="av-file">${ic('upload')}Загрузить аватар</label><input type="file" id="av-file" accept="image/*" hidden>${u.avatar ? '<button class="btn btn-ghost btn-sm" data-action="removeAvatar">Вернуть сгенерированный</button>' : ''}</div></div>
+        <div class="stack" style="gap:8px"><label class="btn" for="av-file">${ic('upload')}Загрузить аватар</label><input type="file" id="av-file" accept="image/png,image/jpeg,image/webp,image/gif" hidden>${u.avatar ? '<button class="btn btn-ghost btn-sm" data-action="removeAvatar">Вернуть сгенерированный</button>' : ''}</div></div>
       <form data-form="profile" class="stack" style="gap:14px">
         <div class="field"><label for="pf-name">Отображаемое имя</label><input class="input" id="pf-name" name="displayName" maxlength="40" required value="${esc(u.displayName)}"></div>
         <div class="field"><label for="pf-bio">О себе</label><textarea class="textarea" id="pf-bio" name="bio" maxlength="300" style="min-height:100px">${esc(u.bio || '')}</textarea><span class="hint">До 300 символов. Видно в профиле.</span></div>
         <div class="form-actions"><a class="btn" href="#/user/${esc(u.username)}">Открыть профиль</a><button class="btn btn-primary" type="submit">${ic('check')}Сохранить</button></div></form></div>`;
     after = (root) => $('#av-file', root).addEventListener('change', async (e) => {
       const file = e.target.files[0]; if (!file) return;
-      try { u.avatar = await imageToSquareDataURL(file, 128); save(); toast('Аватар обновлён.'); rerender(); } catch (err) { toast(err.message, 'error'); }
+      try {
+        const up = await uploadFile(await imageToSquareBlob(file, 256), file.name, 'image');
+        await api('PATCH', '/api/me', { avatar: up.id }); toast('Аватар обновлён.'); rerender();
+      } catch (err) { toast(errText(err), 'error'); }
     });
   } else if (section === 'account') {
     body = `<div class="panel"><h2>Аккаунт</h2><form data-form="account" class="stack" style="gap:14px;margin-top:16px">
@@ -2386,9 +1570,10 @@ route(/^\/settings(?:\/([a-z]+))?$/, (section = 'profile') => {
     after = (root) => root.addEventListener('change', (e) => { if (e.target.name === 'theme') { prefs.theme = e.target.value; savePrefs(); applyTheme(); renderHeader(); toast('Тема изменена.'); } });
   } else if (section === 'data') {
     body = `<div class="panel"><h2>Данные и приватность</h2>
-      <p class="muted" style="margin:8px 0">Craftory работает целиком в вашем браузере. Аккаунты, проекты и статистика хранятся в localStorage, загруженные файлы и картинки в IndexedDB. На сервер ничего не отправляется, и другие люди не видят ваших изменений.</p>
-      <p class="muted">Пароли хранятся в виде хэша SHA-256 с солью. Для настоящего сайта нужна серверная часть: эта версия подходит для демонстрации и прототипа.</p>
-      <div class="row" style="margin-top:16px">${u ? `<button class="btn" data-action="exportData">${ic('download')}Скачать мои данные (JSON)</button>` : ''}<button class="btn btn-danger" data-action="resetData">${ic('trash')}Сбросить сайт к демо-данным</button></div></div>`;
+      <p class="muted" style="margin:8px 0">Аккаунты, проекты, файлы и статистика хранятся на сервере Craftory. Пароли хранятся только в виде хэша scrypt, вход защищён cookie, недоступной скриптам страницы.</p>
+      <p class="muted">Вы можете скачать всё, что связано с вашим аккаунтом, в формате JSON, или удалить аккаунт в разделе «Аккаунт».</p>
+      <div class="row" style="margin-top:16px">${u ? `<button class="btn" data-action="exportData">${ic('download')}Скачать мои данные (JSON)</button>` : '<a class="btn" href="#/auth/signin">Войдите, чтобы скачать свои данные</a>'}</div></div>
+      ${isAdmin(u) ? `<div class="panel danger-zone" style="margin-top:16px"><h2>Сброс сайта</h2><p class="muted" style="margin:8px 0 14px">Доступно только модераторам. Удаляет все данные на сервере и заново создаёт демо-каталог.</p><button class="btn btn-danger" data-action="resetData">${ic('trash')}Сбросить к демо-данным</button></div>` : ''}`;
   } else return pageNotFound();
   const nav = u ? SET : SET.filter(([k]) => k === 'appearance' || k === 'data');
   return {
@@ -2397,55 +1582,37 @@ route(/^\/settings(?:\/([a-z]+))?$/, (section = 'profile') => {
     after,
   };
 });
-F.profile = (f) => { const u = me(); const d = formData(f); if (!d.displayName.trim()) return fieldError(f, 'Имя не может быть пустым.'); u.displayName = d.displayName.trim(); u.bio = d.bio.trim(); save(); toast('Профиль сохранён.'); rerender(); };
-A.removeAvatar = () => { me().avatar = null; save(); rerender(); };
-F.account = (f) => {
-  const u = me(); const d = formData(f); const name = d.username.trim();
-  if (!/^[A-Za-z0-9_]{3,24}$/.test(name)) return fieldError(f, 'Имя пользователя: латиница, цифры и подчёркивание, от 3 до 24 символов.');
-  const other = userByName(name); if (other && other.id !== u.id) return fieldError(f, `Имя «${name}» уже занято.`);
-  if (db.users.some((x) => x.id !== u.id && x.email.toLowerCase() === d.email.trim().toLowerCase())) return fieldError(f, 'Эта почта уже привязана к другому аккаунту.');
-  u.username = name; u.email = d.email.trim(); save(); fieldError(f, ''); toast('Данные аккаунта сохранены.'); renderHeader();
+F.profile = async (f) => {
+  const d = formData(f);
+  try { await busy(submitBtn(f), () => api('PATCH', '/api/me', { displayName: d.displayName, bio: d.bio })); toast('Профиль сохранён.'); rerender(); }
+  catch (e) { fieldError(f, errText(e)); }
+};
+A.removeAvatar = act(async () => { await api('PATCH', '/api/me', { avatar: null }); rerender(); });
+F.account = async (f) => {
+  const d = formData(f);
+  try { await busy(submitBtn(f), () => api('PATCH', '/api/me/account', { username: d.username, email: d.email })); fieldError(f, ''); toast('Данные аккаунта сохранены.'); renderHeader(); }
+  catch (e) { fieldError(f, errText(e)); }
 };
 F.password = async (f) => {
-  const u = me(); const d = formData(f);
-  if ((await hashPassword(d.old, u.salt)) !== u.passHash) return fieldError(f, 'Текущий пароль введён неверно.');
+  const d = formData(f);
   if (d.pass.length < 8) return fieldError(f, 'Новый пароль должен быть не короче 8 символов.');
   if (d.pass !== d.pass2) return fieldError(f, 'Пароли не совпадают.');
-  u.salt = uid('s'); u.passHash = await hashPassword(d.pass, u.salt); save(); f.reset(); fieldError(f, ''); toast('Пароль изменён.');
+  try { await busy(submitBtn(f), () => api('POST', '/api/me/password', { old: d.old, pass: d.pass })); f.reset(); fieldError(f, ''); toast('Пароль изменён. На других устройствах нужно будет войти заново.'); }
+  catch (e) { fieldError(f, errText(e)); }
 };
-A.deleteAccount = async () => {
+A.deleteAccount = act(async () => {
   const u = me();
   if (!(await confirmDialog({ title: 'Удалить аккаунт?', text: 'Проекты, где вы владелец, коллекции, подписки и уведомления будут удалены навсегда.', confirm: 'Удалить аккаунт', danger: true, typeToConfirm: u.username }))) return;
-  const owned = db.projects.filter((p) => p.ownerId === u.id).map((p) => p.id);
-  db.versions.filter((v) => owned.includes(v.projectId)).forEach((v) => v.files.forEach((x) => x.blob && Blobs.del(x.blob)));
-  db.projects.filter((p) => owned.includes(p.id)).forEach((p) => p.gallery.forEach((g) => g.blob && Blobs.del(g.blob)));
-  db.versions = db.versions.filter((v) => !owned.includes(v.projectId));
-  db.projects = db.projects.filter((p) => !owned.includes(p.id));
-  db.projects.forEach((p) => { p.members = p.members.filter((m) => m.userId !== u.id); });
-  db.follows = db.follows.filter((x) => x.userId !== u.id && !owned.includes(x.projectId));
-  db.collections = db.collections.filter((c) => c.ownerId !== u.id);
-  db.collections.forEach((c) => { c.projects = c.projects.filter((id) => !owned.includes(id)); });
-  db.notifications = db.notifications.filter((n) => n.userId !== u.id);
-  db.reports = db.reports.filter((r) => !owned.includes(r.projectId));
-  db.users = db.users.filter((x) => x.id !== u.id);
-  owned.forEach((id) => delete db.stats[id]);
-  session.userId = null; saveSession(); save(); toast('Аккаунт удалён.'); go('/');
-};
+  await api('DELETE', '/api/me', { confirm: u.username }); toast('Аккаунт удалён.'); go('/');
+});
 A.exportData = () => {
-  const u = me();
-  const data = {
-    exported: new Date().toISOString(), user: { ...u, passHash: undefined, salt: undefined },
-    projects: db.projects.filter((p) => p.members.some((m) => m.userId === u.id)).map((p) => ({ ...p, versions: versionsOf(p.id) })),
-    collections: db.collections.filter((c) => c.ownerId === u.id), follows: db.follows.filter((f) => f.userId === u.id), notifications: db.notifications.filter((n) => n.userId === u.id),
-  };
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-  const a = document.createElement('a'); a.href = url; a.download = `craftory-${u.username}.json`; document.body.append(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000); toast('Файл с данными сохранён.');
+  const a = document.createElement('a'); a.href = '/api/me/export'; a.download = '';
+  document.body.append(a); a.click(); a.remove(); toast('Готовим файл с вашими данными.');
 };
-A.resetData = async () => {
-  if (!(await confirmDialog({ title: 'Сбросить все данные?', text: 'Все аккаунты, проекты, загруженные файлы и изменения в этом браузере будут удалены и заменены демо-данными.', confirm: 'Сбросить', danger: true }))) return;
-  await Blobs.clear(); db = await buildSeed(); save(); session.userId = null; saveSession(); toast('Данные сброшены.'); go('/');
-};
+A.resetData = act(async () => {
+  if (!(await confirmDialog({ title: 'Сбросить сайт?', text: 'Все аккаунты, проекты, загруженные файлы и статистика на сервере будут удалены и заменены демо-данными. Все пользователи выйдут из аккаунтов.', confirm: 'Сбросить всё', danger: true, typeToConfirm: 'сбросить' }))) return;
+  await api('POST', '/api/admin/reset'); toast('Сайт сброшен к демо-данным.'); go('/');
+});
 
 /* ---------------- Вход и регистрация ---------------- */
 route(/^\/auth\/(signin|signup)$/, (mode, query) => {
@@ -2469,22 +1636,17 @@ route(/^\/auth\/(signin|signup)$/, (mode, query) => {
   };
 });
 F.signin = async (f) => {
-  const d = formData(f); const login = d.login.trim().toLowerCase();
-  const u = db.users.find((x) => x.username.toLowerCase() === login || x.email.toLowerCase() === login);
-  if (!u || (await hashPassword(d.pass, u.salt)) !== u.passHash) return fieldError(f, 'Неверное имя пользователя или пароль.');
-  session.userId = u.id; saveSession(); toast(`Здравствуйте, ${u.displayName}!`); go(f.dataset.next || '/dashboard');
+  const d = formData(f);
+  try { await busy(submitBtn(f), () => api('POST', '/api/auth/signin', { login: d.login, pass: d.pass }), 'Входим…'); toast(`Здравствуйте, ${me().displayName}!`); go(f.dataset.next || '/dashboard'); }
+  catch (e) { fieldError(f, errText(e)); }
 };
 F.signup = async (f) => {
-  const d = formData(f); const name = d.username.trim(); const email = d.email.trim();
-  if (!/^[A-Za-z0-9_]{3,24}$/.test(name)) return fieldError(f, 'Имя пользователя: латиница, цифры и подчёркивание, от 3 до 24 символов.');
-  if (userByName(name)) return fieldError(f, `Имя «${name}» уже занято. Попробуйте другое.`);
-  if (db.users.some((x) => x.email.toLowerCase() === email.toLowerCase())) return fieldError(f, 'Аккаунт с такой почтой уже есть. Войдите или используйте другую почту.');
+  const d = formData(f);
+  if (!/^[A-Za-z0-9_]{3,24}$/.test(d.username.trim())) return fieldError(f, 'Имя пользователя: латиница, цифры и подчёркивание, от 3 до 24 символов.');
   if (d.pass.length < 8) return fieldError(f, 'Пароль должен быть не короче 8 символов.');
   if (d.pass !== d.pass2) return fieldError(f, 'Пароли не совпадают.');
-  const salt = uid('s');
-  const u = { id: uid('u_'), username: name, displayName: name, bio: '', role: 'user', email, avatar: null, salt, passHash: await hashPassword(d.pass, salt), created: now() };
-  db.users.push(u); notify(u.id, 'Добро пожаловать в Craftory! Подпишитесь на любимые проекты или опубликуйте свой.', '/mods', 'info');
-  save(); session.userId = u.id; saveSession(); toast('Аккаунт создан.'); go(f.dataset.next || '/dashboard');
+  try { await busy(submitBtn(f), () => api('POST', '/api/auth/signup', { username: d.username, email: d.email, pass: d.pass }), 'Создаём аккаунт…'); toast('Аккаунт создан.'); go(f.dataset.next || '/dashboard'); }
+  catch (e) { fieldError(f, errText(e)); }
 };
 
 /* ---------------- О проекте и 404 ---------------- */
@@ -2507,7 +1669,7 @@ Craftory — каталог контента для Minecraft: Java Edition. З�
 5. Модераторы могут скрыть проект после жалобы. Автор получит уведомление и сможет всё исправить.
 
 ## Как это устроено
-Эта версия сайта работает целиком в браузере, без сервера. Данные хранятся локально, поэтому их видите только вы. Сбросить всё к демо-данным можно в разделе [Данные](#/settings/data).
+Сайт состоит из сервера на Node.js с базой SQLite и одностраничного интерфейса. Файлы версий и изображения хранятся на сервере, скачивания считаются там же. Подробнее о хранении данных: [Данные и приватность](#/settings/data).
 
 > Craftory не связан с Mojang Studios и Microsoft. Minecraft — товарный знак Mojang Synergies AB.`)}</div></article>
   <aside class="side"><div class="panel"><h3>Попробуйте</h3><div class="stack" style="gap:8px"><a class="btn" href="#/auth/signin">Войти в демо-аккаунт</a><button class="btn btn-primary" data-action="createProject">${ic('plus')}Создать проект</button></div></div></aside></div></div>`,
@@ -2518,16 +1680,20 @@ function pageNotFound(title = 'Страница не найдена', text = 'П
 
 /* ---------------- Запуск ---------------- */
 (async function boot() {
-  try { Object.assign(prefs, JSON.parse(store.get(PREFS_KEY) || '{}')); } catch { /* пусто */ }
-  try { Object.assign(session, JSON.parse(store.get(SESSION_KEY) || '{}')); } catch { /* пусто */ }
-  applyTheme(); renderFooter();
-  let loaded = null;
-  try { loaded = JSON.parse(store.get(DB_KEY) || 'null'); } catch { loaded = null; }
-  if (loaded && loaded.version === DB_VERSION) db = loaded;
-  else { db = await buildSeed(); save(); }
-  if (session.userId && !userById(session.userId)) { session.userId = null; saveSession(); }
+  loadPrefs(); applyTheme(); renderFooter();
+  try { db = await api('GET', '/api/state'); }
+  catch (e) {
+    $('#app').innerHTML = `<div class="container">${emptyState('alert', 'Не удалось загрузить каталог', e.message, '<button class="btn btn-primary" id="retry">Попробовать снова</button>')}</div>`;
+    $('#retry').addEventListener('click', () => location.reload());
+    return;
+  }
   render();
+  // Раз в минуту обновляем данные, чтобы появлялись новые уведомления
+  setInterval(async () => {
+    if (document.visibilityState !== 'visible') return;
+    const before = unreadCount();
+    await refreshState(); renderHeader();
+    const after = unreadCount();
+    if (after > before) toast(after - before === 1 ? 'Новое уведомление.' : `Новых уведомлений: ${after - before}.`);
+  }, 60e3);
 })();
-</script>
-</body>
-</html>

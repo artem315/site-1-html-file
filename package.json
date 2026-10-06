@@ -1,0 +1,16 @@
+{
+  "name": "craftory",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Каталог модов, сборок, ресурспаков, шейдеров, плагинов и датапаков для Minecraft",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "license": "MIT"
+}
