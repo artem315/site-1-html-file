@@ -1,5 +1,5 @@
 'use strict';
-/* HTTP-сервер Craftory: API, загрузка и раздача файлов, статика. Без внешних зависимостей. */
+/* HTTP-сервер Craftory: API, загрузка и раздача файлов, статика. */
 const http = require('node:http');
 const fs = require('node:fs');
 const fsp = require('node:fs/promises');
@@ -10,6 +10,14 @@ const S = require('../public/shared.js');
 const { openDb, tx, wipe, json: parseJson } = require('./db.js');
 const Auth = require('./auth.js');
 const { seedDemo, ensureAdmin } = require('./seed.js');
+
+const writableDir = (dir) => { try { fs.mkdirSync(path.join(dir, 'uploads'), { recursive: true }); fs.accessSync(dir, fs.constants.W_OK); return true; } catch { return false; } };
+/* Выбор папки данных: нужная, а если она недоступна — запасная */
+function pickDataDir(requested, fallback) {
+  if (writableDir(requested)) return { dataDir: requested, fallback: false };
+  if (fallback && writableDir(fallback)) return { dataDir: fallback, fallback: true };
+  throw new Error(`Папка данных ${requested} недоступна для записи.`);
+}
 
 const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 const MIME = {
@@ -56,29 +64,28 @@ const LINK_KEYS = ['source', 'issues', 'wiki', 'discord', 'donate'];
 function createApp(opts = {}) {
   const {
     dataDir: requestedDataDir = path.join(__dirname, '..', 'data'), fallbackDataDir = null, seed = true, adminUser = 'admin', adminPassword = 'admin1234',
-    demoPassword = 'demo1234', cookieSecure = 'auto', log = true, trustProxy = false, authLimit = 30,
+    demoPassword = 'demo1234', cookieSecure = 'auto', log = true, trustProxy = false, authLimit = 30, persistence = null,
   } = opts;
   /* Папка данных. Если она недоступна для записи (например, диск ещё не подключён),
      работаем из запасной папки и предупреждаем администратора. */
-  const writable = (dir) => { try { fs.mkdirSync(path.join(dir, 'uploads'), { recursive: true }); fs.accessSync(dir, fs.constants.W_OK); return true; } catch { return false; } };
-  let dataDir = requestedDataDir; let storageFallback = false;
-  if (!writable(dataDir)) {
-    if (!fallbackDataDir || !writable(fallbackDataDir)) throw new Error(`Папка данных ${dataDir} недоступна для записи.`);
-    console.warn(`ВНИМАНИЕ: папка данных ${dataDir} недоступна, данные пишутся в ${fallbackDataDir}. Подключите постоянный диск к ${dataDir}.`);
-    dataDir = fallbackDataDir; storageFallback = true;
-  }
+  const picked = pickDataDir(requestedDataDir, fallbackDataDir);
+  const dataDir = picked.dataDir; const storageFallback = picked.fallback;
+  if (storageFallback) console.warn(`ВНИМАНИЕ: папка данных ${requestedDataDir} недоступна, данные пишутся в ${dataDir}.`);
   // Отдельный том (подключённый диск) определяем по номеру устройства
   const separateVolume = (() => { try { return fs.statSync(dataDir).dev !== fs.statSync(path.parse(path.resolve(dataDir)).root).dev; } catch { return false; } })();
   // На Render без подключённого диска файловая система временная
-  const ephemeral = storageFallback || (!!process.env.RENDER && !separateVolume);
-  const storage = { dataDir, requested: requestedDataDir, fallback: storageFallback, separateVolume, ephemeral };
+  // Если подключено сохранение в Postgres, данные переживают перезапуск и без диска
+  const ephemeral = !persistence && (storageFallback || (!!process.env.RENDER && !separateVolume));
+  const storage = { dataDir, requested: requestedDataDir, fallback: storageFallback, separateVolume, ephemeral, backend: persistence ? 'postgres' : 'disk' };
   if (ephemeral) console.warn('ВНИМАНИЕ: постоянный диск не подключён, данные пропадут при перезапуске сервера.');
   if (log) console.log(`Данные: ${dataDir}${separateVolume ? ' (отдельный том)' : ''}`);
   const uploadsDir = path.join(dataDir, 'uploads');
   const db = openDb(path.join(dataDir, 'craftory.db'));
+  persistence?.attach(db);
   if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
     if (seed) seedDemo(db, { adminPassword, demoPassword });
     else ensureAdmin(db, adminUser, adminPassword);
+    persistence?.markDirty();
   }
   const limitAuth = Auth.rateLimiter(authLimit, 10 * 60e3);
   const limitUpload = Auth.rateLimiter(120, 10 * 60e3);
@@ -169,7 +176,7 @@ function createApp(opts = {}) {
     }
     return {
       me: viewer?.id || null,
-      ...(admin ? { server: { storage } } : {}),
+      ...(admin ? { server: { storage: { ...storage, ...(persistence ? { persistence: persistence.status() } : {}) } } } : {}),
       users: q('SELECT * FROM users ORDER BY created').all().map((u) => userDTO(u, viewer && u.id === viewer.id)),
       projects, versions,
       follows: viewer ? q('SELECT user_id AS userId, project_id AS projectId, created FROM follows WHERE user_id = ?').all(viewer.id).map((r) => ({ ...r })) : [],
@@ -188,7 +195,11 @@ function createApp(opts = {}) {
       AND NOT EXISTS (SELECT 1 FROM gallery g WHERE g.upload_id = u.id)
       AND NOT EXISTS (SELECT 1 FROM projects p WHERE p.icon = u.id)
       AND NOT EXISTS (SELECT 1 FROM users s WHERE s.avatar = u.id)`).all(Date.now() - minAgeMs);
-    for (const r of rows) { q('DELETE FROM uploads WHERE id = ?').run(r.id); await fsp.rm(uploadPath(r.id), { force: true }); }
+    for (const r of rows) {
+      q('DELETE FROM uploads WHERE id = ?').run(r.id); await fsp.rm(uploadPath(r.id), { force: true });
+      persistence?.delBlob(r.id).catch((e) => console.error('Postgres: не удалось удалить файл', r.id, e.message));
+    }
+    if (rows.length) persistence?.markDirty();
     return rows.length;
   }
   async function receiveUpload(ctx) {
@@ -222,6 +233,10 @@ function createApp(opts = {}) {
       mime = sig[0];
     } else if (!/^[\w.+-]+\/[\w.+-]+$/.test(mime)) mime = 'application/octet-stream';
     await fsp.rename(tmp, uploadPath(id));
+    if (persistence) {
+      try { await persistence.putBlob(id, uploadPath(id)); }
+      catch (e) { await fsp.rm(uploadPath(id), { force: true }); console.error('Postgres: не удалось сохранить файл:', e.message); throw new HttpError(503, 'Не удалось сохранить файл в хранилище. Попробуйте ещё раз через минуту.'); }
+    }
     q('INSERT INTO uploads (id, owner_id, kind, name, mime, size, sha256, created) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(id, user.id, kind, name, mime, size, hash.digest('hex'), Date.now());
     return { id, name, size, mime };
   }
@@ -246,7 +261,7 @@ function createApp(opts = {}) {
   };
   const ok = (ctx, extra = {}) => ({ ...extra, state: buildState(ctx.user ? getUser(ctx.user.id) : null) });
 
-  on('GET', '/api/health', () => ({ ok: true, storage: { fallback: storage.fallback, separateVolume: storage.separateVolume, ephemeral: storage.ephemeral } }));
+  on('GET', '/api/health', () => ({ ok: true, storage: { backend: storage.backend, fallback: storage.fallback, separateVolume: storage.separateVolume, ephemeral: storage.ephemeral, ...(persistence ? { lastSaved: persistence.status().lastSaved, ok: !persistence.status().lastError } : {}) } }));
   on('GET', '/api/state', (ctx) => buildState(ctx.user));
   on('GET', '/api/projects/:slug', (ctx) => {
     const p = q('SELECT * FROM projects WHERE slug = ? OR id = ?').get(ctx.params.slug, ctx.params.slug);
@@ -522,6 +537,7 @@ function createApp(opts = {}) {
   on('POST', '/api/admin/reset', async (ctx) => {
     wipe(db);
     for (const f of await fsp.readdir(uploadsDir)) await fsp.rm(path.join(uploadsDir, f), { force: true });
+    if (persistence) await persistence.clearBlobs();
     seedDemo(db, { adminPassword, demoPassword });
     ctx.clearCookie(); ctx.user = null;
     return ok(ctx);
@@ -725,12 +741,24 @@ function createApp(opts = {}) {
       if (res.headersSent) { res.destroy(); return; }
       if (String(req.url).startsWith('/api/')) sendJson(res, status, { error: status === 500 ? 'Внутренняя ошибка сервера. Попробуйте ещё раз позже.' : err.message });
       else { res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' }); res.end(err.message); }
-    }).finally(() => { if (log) console.log(`${req.method} ${req.url.split('?')[0]} ${res.statusCode} ${Date.now() - t}ms`); });
+    }).finally(() => {
+      const p = String(req.url);
+      if (persistence && res.statusCode < 400 && ((req.method !== 'GET' && req.method !== 'HEAD' && p.startsWith('/api/')) || (req.method === 'GET' && p.startsWith('/download/')))) persistence.markDirty();
+      if (log) console.log(`${req.method} ${p.split('?')[0]} ${res.statusCode} ${Date.now() - t}ms`);
+    });
   });
   server.requestTimeout = 30 * 60e3; // большие загрузки на медленном канале
   const timer = setInterval(() => { Auth.purgeExpiredSessions(db); gcUploads().catch(() => {}); }, 3600e3);
   timer.unref();
-  return { server, db, gcUploads, storage, close: () => new Promise((res) => { clearInterval(timer); server.close(() => { db.close(); res(); }); server.closeAllConnections?.(); }) };
+  const close = () => new Promise((res) => {
+    clearInterval(timer);
+    server.close(async () => {
+      if (persistence) { try { await persistence.close(); } catch (e) { console.error('Postgres: не удалось сохранить данные при остановке:', e.message); } }
+      db.close(); res();
+    });
+    server.closeAllConnections?.();
+  });
+  return { server, db, gcUploads, storage, close };
 }
 
-module.exports = { createApp };
+module.exports = { createApp, pickDataDir };

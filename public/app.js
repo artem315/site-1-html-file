@@ -1432,7 +1432,8 @@ route(/^\/dashboard(?:\/([a-z]+))?$/, (section = 'overview', query) => {
     const s30 = seriesFor(mine.map((p) => p.id), 30); const sum30 = s30.reduce((a, x) => a + x.v, 0);
     const notifs = db.notifications.filter((n) => n.userId === u.id).sort((a, b) => b.created - a.created).slice(0, 4);
     const st = isAdmin(u) && db.server && db.server.storage;
-    const storageNote = st && st.ephemeral ? `<div class="notice danger">${ic('alert')}<div><b>Постоянный диск не подключён.</b> Данные лежат в ${esc(st.dataDir)} и пропадут при перезапуске сервера. Подключите постоянный диск к папке ${esc(st.requested)}, инструкция в README.</div></div>` : '';
+    const pErr = st && st.persistence && st.persistence.lastError;
+    const storageNote = pErr ? `<div class="notice danger">${ic('alert')}<div><b>Не удаётся сохранить данные в Postgres.</b> ${esc(pErr)}. Сервер повторит попытку, но изменения могут пропасть при перезапуске.</div></div>` : st && st.ephemeral ? `<div class="notice danger">${ic('alert')}<div><b>Постоянный диск не подключён.</b> Данные лежат в ${esc(st.dataDir)} и пропадут при перезапуске сервера. Задайте переменную DATABASE_URL с адресом бесплатной базы Postgres или подключите постоянный диск, инструкция в README.</div></div>` : '';
     body = `${storageNote}<h1 style="margin-bottom:18px">Здравствуйте, ${esc(u.displayName)}</h1>
       <div class="stat-grid">
         <div class="stat"><span class="eyebrow">Загрузки</span><div class="v">${fmtNum(dl)}</div><div class="d">всего по ${mine.length} ${plural(mine.length, 'проекту', 'проектам', 'проектам')}</div></div>

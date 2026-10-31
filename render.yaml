@@ -1,24 +1,26 @@
-# Конфигурация Render (Blueprint). Постоянный диск доступен только на платных тарифах.
+# Конфигурация Render (Blueprint).
+# Бесплатный вариант: данные хранятся в Postgres (например, бесплатный Neon), адрес задаётся в DATABASE_URL.
 services:
   - type: web
     name: craftory-mods
     runtime: node
-    plan: starter
+    plan: free
     region: frankfurt
     branch: ccr-c6a34cd1-ot9oms
-    buildCommand: npm install --omit=dev
+    buildCommand: npm ci --omit=dev
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: "22"
-      - key: DATA_DIR
-        value: /var/data
       - key: TRUST_PROXY
         value: "1"
       - key: ADMIN_PASSWORD
         generateValue: true
-    disk:
-      name: craftory-data
-      mountPath: /var/data
-      sizeGB: 1
+      - key: DATABASE_URL
+        sync: false # вставьте строку подключения к Postgres в панели Render
+# Платный вариант с постоянным диском: plan: starter, DATA_DIR=/var/data и
+#    disk:
+#      name: craftory-data
+#      mountPath: /var/data
+#      sizeGB: 1
