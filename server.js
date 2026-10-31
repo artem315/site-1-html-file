@@ -7,6 +7,8 @@ const { createApp } = require('./server/app.js');
 const env = process.env;
 const app = createApp({
   dataDir: path.resolve(env.DATA_DIR || path.join(__dirname, 'data')),
+  // Если DATA_DIR задан, но недоступен (диск не подключён), сайт не падает, а пишет в ./data
+  fallbackDataDir: env.DATA_DIR ? path.join(__dirname, 'data') : null,
   seed: env.SEED_DEMO !== '0',
   adminUser: env.ADMIN_USERNAME || 'admin',
   adminPassword: env.ADMIN_PASSWORD || 'admin1234',

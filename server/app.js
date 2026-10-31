@@ -55,11 +55,26 @@ const LINK_KEYS = ['source', 'issues', 'wiki', 'discord', 'donate'];
 
 function createApp(opts = {}) {
   const {
-    dataDir = path.join(__dirname, '..', 'data'), seed = true, adminUser = 'admin', adminPassword = 'admin1234',
+    dataDir: requestedDataDir = path.join(__dirname, '..', 'data'), fallbackDataDir = null, seed = true, adminUser = 'admin', adminPassword = 'admin1234',
     demoPassword = 'demo1234', cookieSecure = 'auto', log = true, trustProxy = false, authLimit = 30,
   } = opts;
+  /* Папка данных. Если она недоступна для записи (например, диск ещё не подключён),
+     работаем из запасной папки и предупреждаем администратора. */
+  const writable = (dir) => { try { fs.mkdirSync(path.join(dir, 'uploads'), { recursive: true }); fs.accessSync(dir, fs.constants.W_OK); return true; } catch { return false; } };
+  let dataDir = requestedDataDir; let storageFallback = false;
+  if (!writable(dataDir)) {
+    if (!fallbackDataDir || !writable(fallbackDataDir)) throw new Error(`Папка данных ${dataDir} недоступна для записи.`);
+    console.warn(`ВНИМАНИЕ: папка данных ${dataDir} недоступна, данные пишутся в ${fallbackDataDir}. Подключите постоянный диск к ${dataDir}.`);
+    dataDir = fallbackDataDir; storageFallback = true;
+  }
+  // Отдельный том (подключённый диск) определяем по номеру устройства
+  const separateVolume = (() => { try { return fs.statSync(dataDir).dev !== fs.statSync(path.parse(path.resolve(dataDir)).root).dev; } catch { return false; } })();
+  // На Render без подключённого диска файловая система временная
+  const ephemeral = storageFallback || (!!process.env.RENDER && !separateVolume);
+  const storage = { dataDir, requested: requestedDataDir, fallback: storageFallback, separateVolume, ephemeral };
+  if (ephemeral) console.warn('ВНИМАНИЕ: постоянный диск не подключён, данные пропадут при перезапуске сервера.');
+  if (log) console.log(`Данные: ${dataDir}${separateVolume ? ' (отдельный том)' : ''}`);
   const uploadsDir = path.join(dataDir, 'uploads');
-  fs.mkdirSync(uploadsDir, { recursive: true });
   const db = openDb(path.join(dataDir, 'craftory.db'));
   if (!db.prepare('SELECT 1 FROM users LIMIT 1').get()) {
     if (seed) seedDemo(db, { adminPassword, demoPassword });
@@ -154,6 +169,7 @@ function createApp(opts = {}) {
     }
     return {
       me: viewer?.id || null,
+      ...(admin ? { server: { storage } } : {}),
       users: q('SELECT * FROM users ORDER BY created').all().map((u) => userDTO(u, viewer && u.id === viewer.id)),
       projects, versions,
       follows: viewer ? q('SELECT user_id AS userId, project_id AS projectId, created FROM follows WHERE user_id = ?').all(viewer.id).map((r) => ({ ...r })) : [],
@@ -230,7 +246,7 @@ function createApp(opts = {}) {
   };
   const ok = (ctx, extra = {}) => ({ ...extra, state: buildState(ctx.user ? getUser(ctx.user.id) : null) });
 
-  on('GET', '/api/health', () => ({ ok: true }));
+  on('GET', '/api/health', () => ({ ok: true, storage: { fallback: storage.fallback, separateVolume: storage.separateVolume, ephemeral: storage.ephemeral } }));
   on('GET', '/api/state', (ctx) => buildState(ctx.user));
   on('GET', '/api/projects/:slug', (ctx) => {
     const p = q('SELECT * FROM projects WHERE slug = ? OR id = ?').get(ctx.params.slug, ctx.params.slug);
@@ -714,7 +730,7 @@ function createApp(opts = {}) {
   server.requestTimeout = 30 * 60e3; // большие загрузки на медленном канале
   const timer = setInterval(() => { Auth.purgeExpiredSessions(db); gcUploads().catch(() => {}); }, 3600e3);
   timer.unref();
-  return { server, db, gcUploads, close: () => new Promise((res) => { clearInterval(timer); server.close(() => { db.close(); res(); }); server.closeAllConnections?.(); }) };
+  return { server, db, gcUploads, storage, close: () => new Promise((res) => { clearInterval(timer); server.close(() => { db.close(); res(); }); server.closeAllConnections?.(); }) };
 }
 
 module.exports = { createApp };

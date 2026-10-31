@@ -237,6 +237,26 @@ test('частые попытки входа ограничиваются', asyn
   assert.deepEqual(codes, [401, 401, 401, 429, 429]);
 });
 
+test('если папка данных недоступна, сервер пишет в запасную и сообщает об этом', async () => {
+  const fb = fs.mkdtempSync(path.join(os.tmpdir(), 'craftory-fb-'));
+  const blocked = path.join(fb, 'file-not-dir'); fs.writeFileSync(blocked, 'x');
+  const a = createApp({ dataDir: path.join(blocked, 'data'), fallbackDataDir: path.join(fb, 'data'), log: false });
+  await new Promise((r) => a.server.listen(0, '127.0.0.1', r));
+  const res = await (await fetch(`http://127.0.0.1:${a.server.address().port}/api/health`)).json();
+  await a.close(); fs.rmSync(fb, { recursive: true, force: true });
+  assert.equal(res.storage.fallback, true);
+  assert.equal(res.storage.ephemeral, true);
+  assert.equal(a.storage.dataDir, path.join(fb, 'data'));
+});
+
+test('администратор видит, куда пишутся данные, остальные нет', async () => {
+  assert.equal((await client().get('/api/state')).data.server, undefined);
+  const admin = await login('admin', 'admin1234');
+  const st = (await admin.get('/api/state')).data.server.storage;
+  assert.equal(st.fallback, false);
+  assert.equal(st.dataDir, dataDir);
+});
+
 test('статика и защита от выхода за пределы папки', async () => {
   const index = await fetch(`${base}/`);
   assert.equal(index.status, 200);

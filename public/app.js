@@ -1431,7 +1431,9 @@ route(/^\/dashboard(?:\/([a-z]+))?$/, (section = 'overview', query) => {
     const dl = mine.reduce((a, p) => a + p.downloads, 0), fol = mine.reduce((a, p) => a + p.followers, 0);
     const s30 = seriesFor(mine.map((p) => p.id), 30); const sum30 = s30.reduce((a, x) => a + x.v, 0);
     const notifs = db.notifications.filter((n) => n.userId === u.id).sort((a, b) => b.created - a.created).slice(0, 4);
-    body = `<h1 style="margin-bottom:18px">Здравствуйте, ${esc(u.displayName)}</h1>
+    const st = isAdmin(u) && db.server && db.server.storage;
+    const storageNote = st && st.ephemeral ? `<div class="notice danger">${ic('alert')}<div><b>Постоянный диск не подключён.</b> Данные лежат в ${esc(st.dataDir)} и пропадут при перезапуске сервера. Подключите постоянный диск к папке ${esc(st.requested)}, инструкция в README.</div></div>` : '';
+    body = `${storageNote}<h1 style="margin-bottom:18px">Здравствуйте, ${esc(u.displayName)}</h1>
       <div class="stat-grid">
         <div class="stat"><span class="eyebrow">Загрузки</span><div class="v">${fmtNum(dl)}</div><div class="d">всего по ${mine.length} ${plural(mine.length, 'проекту', 'проектам', 'проектам')}</div></div>
         <div class="stat"><span class="eyebrow">За 30 дней</span><div class="v">${fmtNum(sum30)}</div><div class="d">загрузок</div></div>
